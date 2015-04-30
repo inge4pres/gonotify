@@ -1,6 +1,7 @@
 package gnbackend
 
 import (
+	"bytes"
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -21,28 +22,41 @@ func NewDbConn(dbuser, dbpass, dbaddr, dbname, dbtable string) *DbParam {
 	}
 }
 
-func (l *DbParam) WriteLog(mex, level string) error {
+func (l *DbParam) WriteLog(mex bytes.Buffer, level string) error {
 	db, err := sql.Open("mysql", l.user+":"+l.pass+"@"+l.url+"/"+l.name)
 	if err != nil {
 		return err
 	}
 	defer db.Close()
-	_, err = db.Exec("INSERT INTO "+l.table+" VALUES (NULL, NULL, ?, ?)", level, mex)
+	_, err = db.Exec("INSERT INTO "+l.table+
+		" VALUES (NULL, NULL, ?, ?)",
+		level, mex.String())
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (l *DbParam) WriteItem(item Item) error {
+func (l *DbParam) PostItem(item Item) error {
 	db, err := sql.Open("mysql", l.user+":"+l.pass+"@"+l.url+"/"+l.name)
 	if err != nil {
 		return err
 	}
 	defer db.Close()
-	_, err = db.Exec("INSERT INTO "+l.table+" VALUES (NULL, NULL, ?, ?, NULL, NULL)", item.Level, item.Rcpt_mail)
+	_, err = db.Exec("INSERT INTO "+l.table+"VALUES (NULL, ?, ?, ?, ?, ?)",
+		item.Time, item.Sndr, item.Level, item.Rcpnt, item.Message)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func (l *DbParam) DeleteItem(item Item) error {
+	db, err := sql.Open("mysql", l.user+":"+l.pass+"@"+l.url+"/"+l.name)
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+	_, err = db.Exec("DELETE FROM "+l.table+" WHERE id = ?", item.Id)
+	return err
 }

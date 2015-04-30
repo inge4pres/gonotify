@@ -2,34 +2,42 @@ package gnbackend
 
 import (
 	//	"database/sql"
+	"bytes"
+	json "encoding/json"
 	"log"
 	"time"
 )
 
 var dblog *DbParam
 var dbitem *DbParam
-var l log.Logger
+var l *log.Logger
+var lbuf bytes.Buffer
 
 type Item struct {
-	Time                   time.Time
-	Level                  string
-	Rcpnt, Sndr, Rcpt_mail string
-	Message                map[string][]rune
+	Id          int64
+	Time        time.Time
+	Level       string
+	Rcpnt, Sndr string
+	Message     json.RawMessage
 }
 
 type Notify interface {
 }
 
 func init() {
-	l.SetPrefix("BACKEND")
-	dblog = NewDbConn("gonotify", "n0tifyM3", "(sviluppo.mtl.it:3306)", "gonotify", "gn_log")
-	dbitem = NewDbConn("gonotify", "n0tifyM3", "(sviluppo.mtl.it:3306)", "gonotify", "gn_item")
+	l = log.New(&lbuf, "BACKEND", log.Lshortfile)
+	dblog = NewDbConn("gonotify", "n0tifyM3", "", "gonotify", "gn_log")
+	dbitem = NewDbConn("gonotify", "n0tifyM3", "", "gonotify", "gn_item")
 }
 
-func RecvItem(item Item) error {
-	err := dbitem.WriteItem(item)
+func PostItem(item Item) error {
+	err := dbitem.PostItem(item)
 	if err == nil {
-		err = dblog.WriteLog("New ITEM", "INFO")
+		l.Printf("Adding new item from %s to %s", item.Sndr, item.Rcpnt)
+		err = dblog.WriteLog(lbuf, "INFO")
+	} else {
+		l.Printf("Not adding new item from %s to %s because of %T", item.Sndr, item.Rcpnt, err.Error())
+		_ = dblog.WriteLog(lbuf, "ERROR")
 	}
 	return err
 }

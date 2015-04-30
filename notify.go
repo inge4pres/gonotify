@@ -4,23 +4,21 @@ package main
 import (
 	"fmt"
 	"github.com/go-martini/martini"
-	back "gonotify/gnbackend"
+	hand "gonotify/handlers"
 	"net/http"
 )
 
-var be back.Item
+var m *martini.Martini
 
 func main() {
-	m := martini.Classic()
-	m.Post("/", func(req *http.Request) string {
-		be.Rcpt_mail = req.FormValue("mail")
-		be.Level = "INFO"
-		err := back.RecvItem(be)
-		if err != nil {
-			return err.Error()
-		}
-		return "Added item with rcpt_mail " + be.Rcpt_mail + "\n"
-	})
+	m = martini.New()
+
+	m.Use(martini.Recovery())
+	m.Use(martini.Logger())
+
+	r := martini.NewRouter()
+
+	r.Post("/", hand.PostItem(req*http.Request))
 	fmt.Println("Serving on localhost:4488")
 	m.RunOnAddr(":4488")
 }

@@ -4,7 +4,8 @@ create table gn_item (
 	id serial PRIMARY KEY NOT NULL AUTO_INCREMENT,
 	date timestamp DEFAULT now(),
 	level VARCHAR(5) NOT NULL,
-	recipient_mail VARCHAR(100),
-	recipient_user VARCHAR(20),
-	message VARCHAR(1024)
+	recipient VARCHAR(100),
+	sender VARCHAR(100),
+	message MEDIUMTEXT,
+	archived BOOL DEFAULT FALSE
 )
