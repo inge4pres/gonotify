@@ -4,21 +4,35 @@ package main
 import (
 	"fmt"
 	"github.com/go-martini/martini"
-	hand "gonotify/handlers"
+	api "gonotify/gnapi"
 	"net/http"
+	"strconv"
 )
 
-var m *martini.Martini
-
 func main() {
-	m = martini.New()
+	m := martini.Classic()
 
-	m.Use(martini.Recovery())
-	m.Use(martini.Logger())
+	m.Post("/api", func(req *http.Request, w http.ResponseWriter) {
+		id, err := api.PostItem(req)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(strconv.Itoa(int(id))))
+	})
 
-	r := martini.NewRouter()
+	m.Delete("/api/:id", func(p martini.Params, w http.ResponseWriter) {
+		intid, _ := strconv.Atoi(p["id"])
+		err := api.DeleteItem(int64(intid))
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("OK"))
+	})
 
-	r.Post("/", hand.PostItem(req*http.Request))
 	fmt.Println("Serving on localhost:4488")
 	m.RunOnAddr(":4488")
 }

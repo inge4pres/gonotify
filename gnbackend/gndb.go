@@ -37,26 +37,27 @@ func (l *DbParam) WriteLog(mex bytes.Buffer, level string) error {
 	return nil
 }
 
-func (l *DbParam) PostItem(item Item) error {
+func (l *DbParam) PostItem(item Item) (int64, error) {
 	db, err := sql.Open("mysql", l.user+":"+l.pass+"@"+l.url+"/"+l.name)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	defer db.Close()
-	_, err = db.Exec("INSERT INTO "+l.table+"VALUES (NULL, ?, ?, ?, ?, ?)",
-		item.Time, item.Sndr, item.Level, item.Rcpnt, item.Message)
+	res, err := db.Exec("INSERT INTO "+l.table+" VALUES (null , ?, ?, ?, ?, ?, ?, ?)",
+		item.Time, item.Mex.Level, item.Mex.Rcpnt, item.Mex.Sndr, item.Mex.Subject, item.Mex.Message, item.Archived)
 	if err != nil {
-		return err
+		return 0, err
 	}
-	return nil
+	lid, err := res.LastInsertId()
+	return lid, err
 }
 
-func (l *DbParam) DeleteItem(item Item) error {
+func (l *DbParam) DeleteById(id int64) error {
 	db, err := sql.Open("mysql", l.user+":"+l.pass+"@"+l.url+"/"+l.name)
 	if err != nil {
 		return err
 	}
 	defer db.Close()
-	_, err = db.Exec("DELETE FROM "+l.table+" WHERE id = ?", item.Id)
+	_, err = db.Exec("DELETE FROM "+l.table+" WHERE id = ?", id)
 	return err
 }
