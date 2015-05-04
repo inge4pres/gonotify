@@ -28,8 +28,8 @@ type Item struct {
 
 func init() {
 	l = log.New(&lbuf, "", log.Lshortfile)
-	dblog = NewDbConn("gonotify", "n0tifyM3", "", "gonotify", "gn_log")
-	dbitem = NewDbConn("gonotify", "n0tifyM3", "", "gonotify", "gn_item")
+	dblog = NewDbConn("gonotify", "n0tifyM3", "(sviluppo.mtl.it:3306)", "gonotify", "gn_log")
+	dbitem = NewDbConn("gonotify", "n0tifyM3", "(sviluppo.mtl.it:3306)", "gonotify", "gn_item")
 }
 
 func NewItem() Item {
@@ -37,6 +37,15 @@ func NewItem() Item {
 		Time:     time.Now().Local(),
 		Archived: false,
 	}
+}
+
+func GetItem(id int64) (Item, error) {
+	item, err := dbitem.GetItem(id)
+	if err != nil {
+		l.Printf("GET failed for ID %d", id)
+		dblog.WriteLog(lbuf, "ERROR")
+	}
+	return item, err
 }
 
 func PostItem(item Item) (int64, error) {

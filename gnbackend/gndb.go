@@ -37,6 +37,17 @@ func (l *DbParam) WriteLog(mex bytes.Buffer, level string) error {
 	return nil
 }
 
+func (l *DbParam) GetItem(id int64) (Item, error) {
+	var item Item
+	db, err := sql.Open("mysql", l.user+":"+l.pass+"@"+l.url+"/"+l.name+"?parseTime=true")
+	if err != nil {
+		return item, err
+	}
+	defer db.Close()
+	err = db.QueryRow("SELECT * from "+l.table+" WHERE id = ?", id).Scan(&item.Id, &item.Time, &item.Mex.Level, &item.Mex.Rcpnt, &item.Mex.Sndr, &item.Mex.Subject, &item.Mex.Message, &item.Archived)
+	return item, err
+}
+
 func (l *DbParam) PostItem(item Item) (int64, error) {
 	db, err := sql.Open("mysql", l.user+":"+l.pass+"@"+l.url+"/"+l.name)
 	if err != nil {

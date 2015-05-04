@@ -12,25 +12,35 @@ import (
 func main() {
 	m := martini.Classic()
 
-	m.Post("/api", func(req *http.Request, w http.ResponseWriter) {
-		id, err := api.PostItem(req)
+	m.Get("/api/:id", func(p martini.Params, w http.ResponseWriter) {
+		intid, _ := strconv.Atoi(p["id"])
+		resp, err := api.GetItem(int64(intid))
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(err.Error()))
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(strconv.Itoa(int(id))))
+		w.Write(resp)
+	})
+
+	m.Post("/api", func(req *http.Request, w http.ResponseWriter) {
+		resp, err := api.PostItem(req)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write(resp)
 	})
 
 	m.Delete("/api/:id", func(p martini.Params, w http.ResponseWriter) {
 		intid, _ := strconv.Atoi(p["id"])
-		err := api.DeleteItem(int64(intid))
+		resp, err := api.DeleteItem(int64(intid))
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
+			w.Write(resp)
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("OK"))
+		w.Write(resp)
 	})
 
 	fmt.Println("Serving on localhost:4488")
