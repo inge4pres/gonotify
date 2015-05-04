@@ -4,15 +4,17 @@ import (
 	"encoding/json"
 	back "gonotify/gnbackend"
 	"net/http"
+	"strconv"
 )
 
-func GetItem(id int64) ([]byte, error) {
-	item, err := back.GetItem(id)
+func GetItem(id string) ([]byte, int) {
+	intid, _ := strconv.Atoi(id)
+	item, err := back.GetItem(int64(intid))
 	if err != nil {
-		return nil, err
+		return []byte(err.Error()), http.StatusInternalServerError
 	}
-	resp, err := json.Marshal(item)
-	return resp, err
+	resp, _ := json.Marshal(item)
+	return resp, http.StatusOK
 }
 
 func PostItem(r *http.Request) ([]byte, error) {
@@ -24,7 +26,7 @@ func PostItem(r *http.Request) ([]byte, error) {
 	}
 	id, err := back.PostItem(i)
 	i.Id = id
-	resp, err := json.Marshal(i)
+	resp, _ := json.Marshal(i)
 	return resp, err
 }
 

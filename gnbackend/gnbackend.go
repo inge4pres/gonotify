@@ -49,7 +49,7 @@ func GetItem(id int64) (Item, error) {
 }
 
 func PostItem(item Item) (int64, error) {
-	id, err := dbitem.PostItem(item)
+	id, err := dbitem.InsertItem(item)
 	if err == nil {
 		l.Printf("Adding new item from %s to %s", item.Message.Sndr, item.Message.Rcpnt)
 		err = dblog.WriteLog(lbuf, "INFO")

@@ -13,8 +13,7 @@ func main() {
 	m := martini.Classic()
 
 	m.Get("/api/:id", func(p martini.Params, w http.ResponseWriter) {
-		intid, _ := strconv.Atoi(p["id"])
-		resp, err := api.GetItem(int64(intid))
+		resp, err := api.GetItem(p["id"])
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(err.Error()))
@@ -28,7 +27,7 @@ func main() {
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
-		w.WriteHeader(http.StatusOK)
+		w.WriteHeader(http.StatusCreated)
 		w.Write(resp)
 	})
 
@@ -39,7 +38,7 @@ func main() {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write(resp)
 		}
-		w.WriteHeader(http.StatusOK)
+		w.WriteHeader(http.StatusAccepted)
 		w.Write(resp)
 	})
 

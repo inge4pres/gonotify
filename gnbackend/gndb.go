@@ -64,7 +64,7 @@ func (l *DbParam) GetItem(id int64) (Item, error) {
 	return item, err
 }
 
-func (l *DbParam) PostItem(item Item) (int64, error) {
+func (l *DbParam) InsertItem(item Item) (int64, error) {
 	var p string
 	if l.params != nil {
 		p += "?"
