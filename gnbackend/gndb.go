@@ -10,20 +10,29 @@ var db *sql.DB
 
 type DbParam struct {
 	user, pass, url, name, table string
+	params                       []string
 }
 
-func NewDbConn(dbuser, dbpass, dbaddr, dbname, dbtable string) *DbParam {
+func NewDbConn(dbuser, dbpass, dbaddr, dbname, dbtable string, params []string) *DbParam {
 	return &DbParam{
-		user:  dbuser,
-		pass:  dbpass,
-		url:   dbaddr,
-		name:  dbname,
-		table: dbtable,
+		user:   dbuser,
+		pass:   dbpass,
+		url:    dbaddr,
+		name:   dbname,
+		table:  dbtable,
+		params: params,
 	}
 }
 
 func (l *DbParam) WriteLog(mex bytes.Buffer, level string) error {
-	db, err := sql.Open("mysql", l.user+":"+l.pass+"@"+l.url+"/"+l.name)
+	var p string
+	if l.params != nil {
+		p += "?"
+		for s := range l.params {
+			p += l.params[s]
+		}
+	}
+	db, err := sql.Open("mysql", l.user+":"+l.pass+"@"+l.url+"/"+l.name+p)
 	if err != nil {
 		return err
 	}
@@ -39,32 +48,53 @@ func (l *DbParam) WriteLog(mex bytes.Buffer, level string) error {
 
 func (l *DbParam) GetItem(id int64) (Item, error) {
 	var item Item
-	db, err := sql.Open("mysql", l.user+":"+l.pass+"@"+l.url+"/"+l.name+"?parseTime=true")
+	var p string
+	if l.params != nil {
+		p += "?"
+		for s := range l.params {
+			p += l.params[s]
+		}
+	}
+	db, err := sql.Open("mysql", l.user+":"+l.pass+"@"+l.url+"/"+l.name+p)
 	if err != nil {
 		return item, err
 	}
 	defer db.Close()
-	err = db.QueryRow("SELECT * from "+l.table+" WHERE id = ?", id).Scan(&item.Id, &item.Time, &item.Mex.Level, &item.Mex.Rcpnt, &item.Mex.Sndr, &item.Mex.Subject, &item.Mex.Message, &item.Archived)
+	err = db.QueryRow("SELECT * from "+l.table+" WHERE id = ?", id).Scan(&item.Id, &item.Time, &item.Message.Level, &item.Message.Rcpnt, &item.Message.Sndr, &item.Message.Subject, &item.Message.Message, &item.Archived)
 	return item, err
 }
 
 func (l *DbParam) PostItem(item Item) (int64, error) {
-	db, err := sql.Open("mysql", l.user+":"+l.pass+"@"+l.url+"/"+l.name)
+	var p string
+	if l.params != nil {
+		p += "?"
+		for s := range l.params {
+			p += l.params[s]
+		}
+	}
+	db, err := sql.Open("mysql", l.user+":"+l.pass+"@"+l.url+"/"+l.name+p)
 	if err != nil {
-		return 0, err
+		return -1, err
 	}
 	defer db.Close()
 	res, err := db.Exec("INSERT INTO "+l.table+" VALUES (null , ?, ?, ?, ?, ?, ?, ?)",
-		item.Time, item.Mex.Level, item.Mex.Rcpnt, item.Mex.Sndr, item.Mex.Subject, item.Mex.Message, item.Archived)
+		item.Time, item.Message.Level, item.Message.Rcpnt, item.Message.Sndr, item.Message.Subject, item.Message.Message, item.Archived)
 	if err != nil {
-		return 0, err
+		return -1, err
 	}
 	lid, err := res.LastInsertId()
 	return lid, err
 }
 
 func (l *DbParam) DeleteById(id int64) error {
-	db, err := sql.Open("mysql", l.user+":"+l.pass+"@"+l.url+"/"+l.name)
+	var p string
+	if l.params != nil {
+		p += "?"
+		for s := range l.params {
+			p += l.params[s]
+		}
+	}
+	db, err := sql.Open("mysql", l.user+":"+l.pass+"@"+l.url+"/"+l.name+p)
 	if err != nil {
 		return err
 	}

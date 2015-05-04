@@ -18,7 +18,7 @@ func GetItem(id int64) ([]byte, error) {
 func PostItem(r *http.Request) ([]byte, error) {
 	decoder := json.NewDecoder(r.Body)
 	i := back.NewItem()
-	err := decoder.Decode(&i.Mex)
+	err := decoder.Decode(&i.Message)
 	if err != nil {
 		return []byte(err.Error()), err
 	}
@@ -30,5 +30,8 @@ func PostItem(r *http.Request) ([]byte, error) {
 
 func DeleteItem(id int64) ([]byte, error) {
 	err := back.DeleteItem(id)
-	return []byte("response:\"OK\""), err
+	if err != nil {
+		return nil, err
+	}
+	return []byte("{\"response\":\"OK\"}"), nil
 }

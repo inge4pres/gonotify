@@ -22,14 +22,14 @@ type JReq struct {
 type Item struct {
 	Id       int64
 	Time     time.Time
-	Mex      JReq
+	Message  JReq
 	Archived bool
 }
 
 func init() {
 	l = log.New(&lbuf, "", log.Lshortfile)
-	dblog = NewDbConn("gonotify", "n0tifyM3", "(sviluppo.mtl.it:3306)", "gonotify", "gn_log")
-	dbitem = NewDbConn("gonotify", "n0tifyM3", "(sviluppo.mtl.it:3306)", "gonotify", "gn_item")
+	dblog = NewDbConn("gonotify", "n0tifyM3", "(sviluppo.mtl.it:3306)", "gonotify", "gn_log", nil)
+	dbitem = NewDbConn("gonotify", "n0tifyM3", "(sviluppo.mtl.it:3306)", "gonotify", "gn_item", []string{"parseTime=true"})
 }
 
 func NewItem() Item {
@@ -51,10 +51,10 @@ func GetItem(id int64) (Item, error) {
 func PostItem(item Item) (int64, error) {
 	id, err := dbitem.PostItem(item)
 	if err == nil {
-		l.Printf("Adding new item from %s to %s", item.Mex.Sndr, item.Mex.Rcpnt)
+		l.Printf("Adding new item from %s to %s", item.Message.Sndr, item.Message.Rcpnt)
 		err = dblog.WriteLog(lbuf, "INFO")
 	} else {
-		l.Printf("Not adding new item from %s to %s because of %s", item.Mex.Sndr, item.Mex.Rcpnt, err.Error())
+		l.Printf("Not adding new item from %s to %s because of %s", item.Message.Sndr, item.Message.Rcpnt, err.Error())
 		_ = dblog.WriteLog(lbuf, "ERROR")
 	}
 	return id, err
