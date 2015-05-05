@@ -13,12 +13,7 @@ func main() {
 	m := martini.Classic()
 
 	m.Get("/api/:id", func(p martini.Params, w http.ResponseWriter) {
-		resp, err := api.GetItem(p["id"])
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
-		}
-		w.WriteHeader(http.StatusOK)
+		resp, _ := api.GetItem(p["id"])
 		w.Write(resp)
 	})
 

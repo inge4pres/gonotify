@@ -11,7 +11,7 @@ var dbitem *DbParam
 var l *log.Logger
 var lbuf bytes.Buffer
 
-type JReq struct {
+type Note struct {
 	Level   string `json:"level"`
 	Rcpnt   string `json:"recipient"`
 	Sndr    string `json:"sender"`
@@ -22,7 +22,7 @@ type JReq struct {
 type Item struct {
 	Id       int64
 	Time     time.Time
-	Message  JReq
+	Notify   Note
 	Archived bool
 }
 
@@ -34,16 +34,18 @@ func init() {
 
 func NewItem() Item {
 	return Item{
+		Id:       -1,
 		Time:     time.Now().Local(),
 		Archived: false,
 	}
 }
 
-func GetItem(id int64) (Item, error) {
-	item, err := dbitem.GetItem(id)
+func GetItem(id int64) (item Item, err error) {
+	item, err = dbitem.GetItem(id)
 	if err != nil {
 		l.Printf("GET failed for ID %d", id)
 		dblog.WriteLog(lbuf, "ERROR")
+		return NewItem(), err
 	}
 	return item, err
 }
@@ -51,10 +53,10 @@ func GetItem(id int64) (Item, error) {
 func PostItem(item Item) (int64, error) {
 	id, err := dbitem.InsertItem(item)
 	if err == nil {
-		l.Printf("Adding new item from %s to %s", item.Message.Sndr, item.Message.Rcpnt)
+		l.Printf("Adding new item from %s to %s", item.Notify.Sndr, item.Notify.Rcpnt)
 		err = dblog.WriteLog(lbuf, "INFO")
 	} else {
-		l.Printf("Not adding new item from %s to %s because of %s", item.Message.Sndr, item.Message.Rcpnt, err.Error())
+		l.Printf("Not adding new item from %s to %s because of %s", item.Notify.Sndr, item.Notify.Rcpnt, err.Error())
 		_ = dblog.WriteLog(lbuf, "ERROR")
 	}
 	return id, err

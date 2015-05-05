@@ -60,7 +60,7 @@ func (l *DbParam) GetItem(id int64) (Item, error) {
 		return item, err
 	}
 	defer db.Close()
-	err = db.QueryRow("SELECT * from "+l.table+" WHERE id = ?", id).Scan(&item.Id, &item.Time, &item.Message.Level, &item.Message.Rcpnt, &item.Message.Sndr, &item.Message.Subject, &item.Message.Message, &item.Archived)
+	err = db.QueryRow("SELECT * from "+l.table+" WHERE id = ?", id).Scan(&item.Id, &item.Time, &item.Notify.Level, &item.Notify.Rcpnt, &item.Notify.Sndr, &item.Notify.Subject, &item.Notify.Message, &item.Archived)
 	return item, err
 }
 
@@ -78,7 +78,7 @@ func (l *DbParam) InsertItem(item Item) (int64, error) {
 	}
 	defer db.Close()
 	res, err := db.Exec("INSERT INTO "+l.table+" VALUES (null , ?, ?, ?, ?, ?, ?, ?)",
-		item.Time, item.Message.Level, item.Message.Rcpnt, item.Message.Sndr, item.Message.Subject, item.Message.Message, item.Archived)
+		item.Time, item.Notify.Level, item.Notify.Rcpnt, item.Notify.Sndr, item.Notify.Subject, item.Notify.Message, item.Archived)
 	if err != nil {
 		return -1, err
 	}
