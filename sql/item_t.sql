@@ -8,5 +8,6 @@ create table gn_item (
 	sender VARCHAR(100),
 	subject TINYTEXT,
 	message MEDIUMTEXT,
-	archived BOOL DEFAULT FALSE
+	archived BOOL DEFAULT FALSE,
+	UNIQUE INDEX rcpt_idx USING BTREE (id, recipient)
 )
