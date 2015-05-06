@@ -31,26 +31,35 @@ func GetItem(id string) ([]byte, error) {
 	}
 	r.Status = http.StatusOK
 	return json.Marshal(r)
-
 }
 
-func PostItem(r *http.Request) ([]byte, error) {
-	decoder := json.NewDecoder(r.Body)
+func PostItem(req *http.Request) ([]byte, error) {
+	r := NewResponse()
+	decoder := json.NewDecoder(req.Body)
 	i := back.NewItem()
+	r.Action = "POST"
 	err := decoder.Decode(&i.Notify)
 	if err != nil {
-		return []byte(err.Error()), err
+		r.Err = err.Error()
+		r.Status = http.StatusInternalServerError
+		return json.Marshal(r)
 	}
 	id, err := back.PostItem(i)
 	i.Id = id
-	resp, _ := json.Marshal(i)
-	return resp, err
+	r.Item = i
+	r.Status = http.StatusCreated
+	return json.Marshal(r)
 }
 
 func DeleteItem(id int64) ([]byte, error) {
+	r := NewResponse()
 	err := back.DeleteItem(id)
+	r.Action = "DELETE"
 	if err != nil {
-		return nil, err
+		r.Err = err.Error()
+		r.Status = http.StatusNotFound
+		return json.Marshal(r)
 	}
-	return []byte("{\"response\":\"OK\"}"), nil
+	r.Status = http.StatusAccepted
+	return json.Marshal(r)
 }

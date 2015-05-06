@@ -8,6 +8,7 @@ import (
 
 var dblog *DbParam
 var dbitem *DbParam
+var dbuser *DbParam
 var l *log.Logger
 var lbuf bytes.Buffer
 
@@ -30,6 +31,7 @@ func init() {
 	l = log.New(&lbuf, "", log.Lshortfile)
 	dblog = NewDbConn("gonotify", "n0tifyM3", "(sviluppo.mtl.it:3306)", "gonotify", "gn_log", nil)
 	dbitem = NewDbConn("gonotify", "n0tifyM3", "(sviluppo.mtl.it:3306)", "gonotify", "gn_item", []string{"parseTime=true"})
+	dbuser = NewDbConn("gonotify", "n0tifyM3", "(sviluppo.mtl.it:3306)", "gonotify", "gn_user", []string{"parseTime=true"})
 }
 
 func NewItem() Item {
