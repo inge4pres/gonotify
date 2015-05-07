@@ -102,3 +102,21 @@ func (l *DbParam) DeleteById(id int64) error {
 	_, err = db.Exec("DELETE FROM "+l.table+" WHERE id = ?", id)
 	return err
 }
+
+func (u *DbParam) GetUserByField(field, value string) (*User, error) {
+	user := NewUser()
+	var p string
+	if u.params != nil {
+		p += "?"
+		for s := range u.params {
+			p += u.params[s]
+		}
+	}
+	db, err := sql.Open("mysql", u.user+":"+u.pass+"@"+u.url+"/"+u.name+p)
+	if err != nil {
+		return user, err
+	}
+	defer db.Close()
+	err = db.QueryRow("SELECT * from "+u.table+" WHERE "+field+" = ?", value).Scan(user.Id, user.Modified, user.Uname, user.Rname, user.Mail, user.Pwd)
+	return user, err
+}
