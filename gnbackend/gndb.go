@@ -117,6 +117,6 @@ func (u *DbParam) GetUserByField(field, value string) (*User, error) {
 		return user, err
 	}
 	defer db.Close()
-	err = db.QueryRow("SELECT * from "+u.table+" WHERE "+field+" = ?", value).Scan(user.Id, user.Modified, user.Uname, user.Rname, user.Mail, user.Pwd)
+	err = db.QueryRow("SELECT * from "+u.table+" WHERE "+field+" = ?", value).Scan(user.Id, user.Modified, user.Uname, user.Rname, user.Mail, user.Pwd, user.IsLogged)
 	return user, err
 }

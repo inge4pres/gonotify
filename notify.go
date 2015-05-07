@@ -12,6 +12,7 @@ import (
 
 func main() {
 	m := martini.Classic()
+	m.Use(martini.Recovery())
 
 	m.Get("/api/:id", func(p martini.Params, w http.ResponseWriter) {
 		resp, _ := api.GetItem(p["id"])
@@ -29,11 +30,11 @@ func main() {
 	m.Post("/login", func(req *http.Request, w http.ResponseWriter) {
 		u, err := back.GetUser(req.FormValue("username"))
 		if err != nil {
-			w.WriteHeader(http.StatusForbidden)
+			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte(err.Error()))
 		}
 		if u.VerifyPwd(req.FormValue("password")) {
-			http.Redirect(w, req, "/user/"+u.Uname, 301)
+			http.Get("/user/" + u.Uname)
 		}
 		w.WriteHeader(http.StatusOK)
 	})

@@ -7,5 +7,6 @@ create table gn_user (
 	rname VARCHAR(100) NOT NULL,
 	mail VARCHAR(100) NOT NULL UNIQUE KEY,
 	pwd BLOB,
+	islogged BOOL,
 	UNIQUE INDEX mail_idx USING HASH (mail)
 );

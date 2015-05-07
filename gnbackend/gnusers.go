@@ -10,6 +10,7 @@ type User struct {
 	Modified           time.Time
 	Uname, Rname, Mail string
 	Pwd                []byte
+	IsLogged           bool
 }
 
 func NewUser() *User {
@@ -20,6 +21,7 @@ func NewUser() *User {
 		Rname:    "",
 		Mail:     "",
 		Pwd:      nil,
+		IsLogged: false,
 	}
 }
 
