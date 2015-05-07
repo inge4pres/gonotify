@@ -6,4 +6,4 @@ create table gn_log (
 	level VARCHAR(5) NOT NULL,
 	message VARCHAR(1024),	
 	INDEX level_idx USING BTREE (id,level) 
-)
+);

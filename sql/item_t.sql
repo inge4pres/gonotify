@@ -10,4 +10,4 @@ create table gn_item (
 	message MEDIUMTEXT,
 	archived BOOL DEFAULT FALSE,
 	UNIQUE INDEX rcpt_idx USING BTREE (id, recipient)
-)
+);

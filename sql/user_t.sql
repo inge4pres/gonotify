@@ -6,5 +6,6 @@ create table gn_user (
 	uname VARCHAR(24) NOT NULL,
 	rname VARCHAR(100) NOT NULL,
 	mail VARCHAR(100) NOT NULL UNIQUE KEY,
+	pwd BLOB,
 	UNIQUE INDEX mail_idx USING HASH (mail)
-)
+);
