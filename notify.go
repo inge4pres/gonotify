@@ -39,6 +39,15 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 	})
 
+	m.Get("/user/:name", func(p martini.Params, w http.ResponseWriter) {
+		user := back.GetUserByName(p["name"])
+		if user.IsLogged {
+
+		} else {
+
+		}
+	})
+
 	fmt.Println("Serving on localhost:4488")
 	m.RunOnAddr(":4488")
 }

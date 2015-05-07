@@ -30,7 +30,11 @@ func encPwd(input string) []byte {
 }
 
 func (u *User) VerifyPwd(input string) bool {
-	return compare(sha512.New().Sum([]byte(input)), u.Pwd)
+	if compare(sha512.New().Sum([]byte(input)), u.Pwd) {
+		u.IsLogged = true
+		return true
+	}
+	return false
 }
 
 func compare(a, b []byte) bool {
@@ -49,6 +53,6 @@ func compare(a, b []byte) bool {
 //	return -1, nil
 //}
 
-func GetUser(uname string) (*User, error) {
+func GetUserByName(uname string) (*User, error) {
 	return dbuser.GetUserByField("username", uname)
 }
