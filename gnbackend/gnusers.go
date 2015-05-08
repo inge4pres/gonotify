@@ -1,6 +1,7 @@
 package gnbackend
 
 import (
+	"bytes"
 	"crypto/sha512"
 	"time"
 )
@@ -25,12 +26,21 @@ func NewUser() *User {
 	}
 }
 
-func encPwd(input string) []byte {
-	return sha512.New().Sum([]byte(input))
+func RegisterUser(uname, rname, mail, pwd string) error {
+	user := NewUser()
+	user.Uname = uname
+	user.Rname = rname
+	user.Mail = mail
+	user.Pwd = encPwd(pwd)
+	return dbuser.InsertUser(user)
+}
+
+func GetUserByName(uname string) (*User, error) {
+	return dbuser.GetUserByField("uname", uname)
 }
 
 func (u *User) VerifyPwd(input string) bool {
-	if compare(sha512.New().Sum([]byte(input)), u.Pwd) {
+	if bytes.Equal(encPwd(input), u.Pwd) {
 		u.IsLogged = true
 		if err := u.updateLogin(u.IsLogged); err != nil {
 			return false
@@ -40,22 +50,12 @@ func (u *User) VerifyPwd(input string) bool {
 	return false
 }
 
-func compare(a, b []byte) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
+func (u *User) updateLogin(islogged bool) error {
+	return dbitem.UpdateFieldById(u.Id, "islogged", islogged)
 }
 
-func (u *User) updateLogin(logged bool) error {
-	return dbitem.UpdateFieldById(u.Id, "islogged", logged)
-}
-
-func GetUserByName(uname string) (*User, error) {
-	return dbuser.GetUserByField("username", uname)
+func encPwd(input string) []byte {
+	h := sha512.New()
+	h.Write([]byte(input))
+	return h.Sum([]byte{})
 }

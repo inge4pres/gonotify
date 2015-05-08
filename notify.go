@@ -22,32 +22,55 @@ func main() {
 		resp, _ := api.PostItem(req)
 		w.Write(resp)
 	})
+	m.Patch("/api/:id", func(p martini.Params, w http.ResponseWriter) {
+		intid, _ := strconv.Atoi(p["id"])
+		resp, _ := api.ArchiveItem(int64(intid))
+		w.Write(resp)
+	})
 	m.Delete("/api/:id", func(p martini.Params, w http.ResponseWriter) {
 		intid, _ := strconv.Atoi(p["id"])
 		resp, _ := api.DeleteItem(int64(intid))
 		w.Write(resp)
 	})
+	m.Post("/register", func(req *http.Request, w http.ResponseWriter) {
+		uname := req.FormValue("username")
+		rname := req.FormValue("realname")
+		mail := req.FormValue("mail")
+		pwd := req.FormValue("password")
+		if err := back.RegisterUser(uname, rname, mail, pwd); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("REGISTERED"))
+	})
 	m.Post("/login", func(req *http.Request, w http.ResponseWriter) {
 		u, err := back.GetUserByName(req.FormValue("username"))
 		if err != nil {
-			w.WriteHeader(http.StatusUnauthorized)
+			w.WriteHeader(http.StatusNotFound)
 			w.Write([]byte(err.Error()))
 		}
 		if u.VerifyPwd(req.FormValue("password")) {
+			w.WriteHeader(http.StatusOK)
 			http.Get("/user/" + u.Uname)
+		} else {
+			w.WriteHeader(http.StatusUnauthorized)
 		}
-		w.WriteHeader(http.StatusOK)
-	})
 
+	})
 	m.Get("/user/:name", func(p martini.Params, w http.ResponseWriter) {
-		user := back.GetUserByName(p["name"])
+		user, err := back.GetUserByName(p["name"])
+		if err != nil {
+			w.Write([]byte(err.Error()))
+		}
 		if user.IsLogged {
-			items, err := back.GetUserItems()
+			items, _ := back.GetUserItems(user)
 			for u := range items {
-				w.Write([]byte(int(items[u].Id)))
+				w.Write(api.RenderJson(items[u]))
 			}
 		} else {
 			w.Write([]byte("USER not logged in"))
+			http.Get("/login")
 		}
 	})
 

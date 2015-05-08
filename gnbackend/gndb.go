@@ -36,6 +36,13 @@ func (l *DbParam) WriteLog(mex bytes.Buffer, level string) error {
 	return nil
 }
 
+func (u *DbParam) InsertUser(us *User) error {
+	db, err := openConn(u)
+	defer db.Close()
+	_, err = db.Exec("INSERT INTO "+u.table+" VALUES (null,?,?,?,?,?,?)", us.Modified, us.Uname, us.Rname, us.Mail, us.Pwd, false)
+	return err
+}
+
 func (i *DbParam) GetItem(id int64) (Item, error) {
 	db, err := openConn(i)
 	defer db.Close()
@@ -67,11 +74,11 @@ func (u *DbParam) GetUserByField(field, value string) (*User, error) {
 	db, err := openConn(u)
 	defer db.Close()
 	user := NewUser()
-	err = db.QueryRow("SELECT * from "+u.table+" WHERE "+field+" = ?", value).Scan(user.Id, user.Modified, user.Uname, user.Rname, user.Mail, user.Pwd, user.IsLogged)
+	err = db.QueryRow("SELECT * from "+u.table+" WHERE "+field+" = ?", value).Scan(&user.Id, &user.Modified, &user.Uname, &user.Rname, &user.Mail, &user.Pwd, &user.IsLogged)
 	return user, err
 }
 
-func (i *DbParam) GetUserItems(user User) ([]Item, error) {
+func (i *DbParam) GetUserItems(user *User) ([]Item, error) {
 	db, err := openConn(i)
 	defer db.Close()
 	var items []Item

@@ -42,7 +42,7 @@ func NewItem() Item {
 	}
 }
 
-func GetUserItems(user User) ([]Item, error) {
+func GetUserItems(user *User) ([]Item, error) {
 	return dbitem.GetUserItems(user)
 }
 
@@ -75,4 +75,8 @@ func DeleteItem(id int64) error {
 	l.Printf("Deleting ITEM with ID %d", id)
 	_ = dblog.WriteLog(lbuf, "INFO")
 	return err
+}
+
+func ArchiveItem(id int64) error {
+	return dbitem.UpdateFieldById(id, "archived", true)
 }

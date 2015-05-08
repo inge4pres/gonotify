@@ -63,3 +63,21 @@ func DeleteItem(id int64) ([]byte, error) {
 	r.Status = http.StatusAccepted
 	return json.Marshal(r)
 }
+
+func ArchiveItem(id int64) ([]byte, error) {
+	r := NewResponse()
+	r.Action = "PATCH"
+	if err := back.ArchiveItem(id); err != nil {
+		r.Err = err.Error()
+		r.Status = http.StatusNotFound
+		return json.Marshal(r)
+	}
+	r.Item, _ = back.GetItem(id)
+	r.Status = http.StatusAccepted
+	return json.Marshal(r)
+}
+
+func RenderJson(t interface{}) []byte {
+	res, _ := json.Marshal(t)
+	return res
+}
