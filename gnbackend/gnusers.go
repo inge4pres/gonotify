@@ -39,15 +39,16 @@ func GetUserByName(uname string) (*User, error) {
 	return dbuser.GetUserByField("uname", uname)
 }
 
-func (u *User) VerifyPwd(input string) bool {
-	if bytes.Equal(encPwd(input), u.Pwd) {
-		u.IsLogged = true
-		if err := u.updateLogin(u.IsLogged); err != nil {
-			return false
-		}
-		return true
-	}
-	return false
+func (u *User) VerifyPwd(pwd string) bool {
+	//	if bytes.Equal(encPwd(pwd), u.Pwd) {
+	//		u.IsLogged = true
+	//		if err := u.updateLogin(u.IsLogged); err != nil {
+	//			return false
+	//		}
+	//		return true
+	//	}
+	//	return false
+	return bytes.Equal(encPwd(pwd), u.Pwd)
 }
 
 func (u *User) updateLogin(islogged bool) error {
