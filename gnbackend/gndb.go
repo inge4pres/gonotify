@@ -25,17 +25,7 @@ func NewDbConn(dbuser, dbpass, dbaddr, dbname, dbtable string, params []string) 
 }
 
 func (l *DbParam) WriteLog(mex bytes.Buffer, level string) error {
-	var p string
-	if l.params != nil {
-		p += "?"
-		for s := range l.params {
-			p += l.params[s]
-		}
-	}
-	db, err := sql.Open("mysql", l.user+":"+l.pass+"@"+l.url+"/"+l.name+p)
-	if err != nil {
-		return err
-	}
+	db, err := openConn(l)
 	defer db.Close()
 	_, err = db.Exec("INSERT INTO "+l.table+
 		" VALUES (NULL, NULL, ?, ?)",
@@ -46,38 +36,18 @@ func (l *DbParam) WriteLog(mex bytes.Buffer, level string) error {
 	return nil
 }
 
-func (l *DbParam) GetItem(id int64) (Item, error) {
-	var item Item
-	var p string
-	if l.params != nil {
-		p += "?"
-		for s := range l.params {
-			p += l.params[s]
-		}
-	}
-	db, err := sql.Open("mysql", l.user+":"+l.pass+"@"+l.url+"/"+l.name+p)
-	if err != nil {
-		return item, err
-	}
+func (i *DbParam) GetItem(id int64) (Item, error) {
+	db, err := openConn(i)
 	defer db.Close()
-	err = db.QueryRow("SELECT * from "+l.table+" WHERE id = ?", id).Scan(&item.Id, &item.Time, &item.Notify.Level, &item.Notify.Rcpnt, &item.Notify.Sndr, &item.Notify.Subject, &item.Notify.Message, &item.Archived)
+	item := NewItem()
+	err = db.QueryRow("SELECT * from "+i.table+" WHERE id = ?", id).Scan(&item.Id, &item.Time, &item.Notify.Level, &item.Notify.Rcpnt, &item.Notify.Sndr, &item.Notify.Subject, &item.Notify.Message, &item.Archived)
 	return item, err
 }
 
-func (l *DbParam) InsertItem(item Item) (int64, error) {
-	var p string
-	if l.params != nil {
-		p += "?"
-		for s := range l.params {
-			p += l.params[s]
-		}
-	}
-	db, err := sql.Open("mysql", l.user+":"+l.pass+"@"+l.url+"/"+l.name+p)
-	if err != nil {
-		return -1, err
-	}
+func (i *DbParam) InsertItem(item Item) (int64, error) {
+	db, err := openConn(i)
 	defer db.Close()
-	res, err := db.Exec("INSERT INTO "+l.table+" VALUES (null , ?, ?, ?, ?, ?, ?, ?)",
+	res, err := db.Exec("INSERT INTO "+i.table+" VALUES (null , ?, ?, ?, ?, ?, ?, ?)",
 		item.Time, item.Notify.Level, item.Notify.Rcpnt, item.Notify.Sndr, item.Notify.Subject, item.Notify.Message, item.Archived)
 	if err != nil {
 		return -1, err
@@ -86,37 +56,51 @@ func (l *DbParam) InsertItem(item Item) (int64, error) {
 	return lid, err
 }
 
-func (l *DbParam) DeleteById(id int64) error {
-	var p string
-	if l.params != nil {
-		p += "?"
-		for s := range l.params {
-			p += l.params[s]
-		}
-	}
-	db, err := sql.Open("mysql", l.user+":"+l.pass+"@"+l.url+"/"+l.name+p)
-	if err != nil {
-		return err
-	}
+func (o *DbParam) DeleteById(id int64) error {
+	db, err := openConn(o)
 	defer db.Close()
-	_, err = db.Exec("DELETE FROM "+l.table+" WHERE id = ?", id)
+	_, err = db.Exec("DELETE FROM "+o.table+" WHERE id = ?", id)
 	return err
 }
 
 func (u *DbParam) GetUserByField(field, value string) (*User, error) {
-	user := NewUser()
-	var p string
-	if u.params != nil {
-		p += "?"
-		for s := range u.params {
-			p += u.params[s]
-		}
-	}
-	db, err := sql.Open("mysql", u.user+":"+u.pass+"@"+u.url+"/"+u.name+p)
-	if err != nil {
-		return user, err
-	}
+	db, err := openConn(u)
 	defer db.Close()
+	user := NewUser()
 	err = db.QueryRow("SELECT * from "+u.table+" WHERE "+field+" = ?", value).Scan(user.Id, user.Modified, user.Uname, user.Rname, user.Mail, user.Pwd, user.IsLogged)
 	return user, err
+}
+
+func (i *DbParam) GetUserItems(user User) ([]Item, error) {
+	db, err := openConn(i)
+	defer db.Close()
+	var items []Item
+	res, _ := db.Query("SELECT * FROM "+i.table+" WHERE recipient = ?", user.Mail)
+	defer res.Close()
+	for res.Next() {
+		item := NewItem()
+		if err := res.Scan(&item); err != nil {
+			return items, err
+		}
+		items = append(items, item)
+	}
+	return items, err
+}
+
+func (u *DbParam) UpdateFieldById(id int64, field string, value interface{}) error {
+	db, err := openConn(u)
+	defer db.Close()
+	_, err = db.Exec("UPDATE "+u.table+" SET "+field+" = ? WHERE id = ?", value, id)
+	return err
+}
+
+func openConn(db *DbParam) (*sql.DB, error) {
+	var p string
+	if db.params != nil {
+		p += "?"
+		for s := range db.params {
+			p += db.params[s]
+		}
+	}
+	return sql.Open("mysql", db.user+":"+db.pass+"@"+db.url+"/"+db.name+p)
 }
