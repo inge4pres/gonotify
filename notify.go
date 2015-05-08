@@ -28,7 +28,7 @@ func main() {
 		w.Write(resp)
 	})
 	m.Post("/login", func(req *http.Request, w http.ResponseWriter) {
-		u, err := back.GetUser(req.FormValue("username"))
+		u, err := back.GetUserByName(req.FormValue("username"))
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte(err.Error()))
@@ -42,9 +42,12 @@ func main() {
 	m.Get("/user/:name", func(p martini.Params, w http.ResponseWriter) {
 		user := back.GetUserByName(p["name"])
 		if user.IsLogged {
-
+			items, err := back.GetUserItems()
+			for u := range items {
+				w.Write([]byte(int(items[u].Id)))
+			}
 		} else {
-
+			w.Write([]byte("USER not logged in"))
 		}
 	})
 

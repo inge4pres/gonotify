@@ -29,7 +29,7 @@ type Item struct {
 
 func init() {
 	l = log.New(&lbuf, "", log.Lshortfile)
-	dblog = NewDbConn("gonotify", "n0tifyM3", "(sviluppo.mtl.it:3306)", "gonotify", "gn_log", nil)
+	dblog = NewDbConn("gonotify", "n0tifyM3", "(sviluppo.mtl.it:3306)", "gonotify", "gn_log", []string{"parseTime=true"})
 	dbitem = NewDbConn("gonotify", "n0tifyM3", "(sviluppo.mtl.it:3306)", "gonotify", "gn_item", []string{"parseTime=true"})
 	dbuser = NewDbConn("gonotify", "n0tifyM3", "(sviluppo.mtl.it:3306)", "gonotify", "gn_user", []string{"parseTime=true"})
 }
@@ -40,6 +40,10 @@ func NewItem() Item {
 		Time:     time.Now().Local(),
 		Archived: false,
 	}
+}
+
+func GetUserItems(user User) ([]Item, error) {
+	return dbitem.GetUserItems(user)
 }
 
 func GetItem(id int64) (item Item, err error) {
@@ -54,10 +58,7 @@ func GetItem(id int64) (item Item, err error) {
 
 func PostItem(item Item) (int64, error) {
 	id, err := dbitem.InsertItem(item)
-	if err == nil {
-		l.Printf("Adding new item from %s to %s", item.Notify.Sndr, item.Notify.Rcpnt)
-		err = dblog.WriteLog(lbuf, "INFO")
-	} else {
+	if err != nil {
 		l.Printf("Not adding new item from %s to %s because of %s", item.Notify.Sndr, item.Notify.Rcpnt, err.Error())
 		_ = dblog.WriteLog(lbuf, "ERROR")
 	}

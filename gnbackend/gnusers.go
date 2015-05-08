@@ -32,6 +32,9 @@ func encPwd(input string) []byte {
 func (u *User) VerifyPwd(input string) bool {
 	if compare(sha512.New().Sum([]byte(input)), u.Pwd) {
 		u.IsLogged = true
+		if err := u.updateLogin(u.IsLogged); err != nil {
+			return false
+		}
 		return true
 	}
 	return false
@@ -49,9 +52,9 @@ func compare(a, b []byte) bool {
 	return true
 }
 
-//func Register(name, rname, mail, pwd string) (int64, error) {
-//	return -1, nil
-//}
+func (u *User) updateLogin(logged bool) error {
+	return dbitem.UpdateFieldById(u.Id, "islogged", logged)
+}
 
 func GetUserByName(uname string) (*User, error) {
 	return dbuser.GetUserByField("username", uname)
