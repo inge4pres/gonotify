@@ -52,7 +52,7 @@ func (u *User) VerifyPwd(pwd string) bool {
 }
 
 func (u *User) updateLogin(islogged bool) error {
-	return dbitem.UpdateFieldById(u.Id, "islogged", islogged)
+	return dbuser.UpdateFieldById(u.Id, "islogged", islogged)
 }
 
 func encPwd(input string) []byte {
