@@ -52,7 +52,7 @@ func main() {
 		}
 		if u.VerifyPwd(req.FormValue("password")) {
 			w.WriteHeader(http.StatusOK)
-			http.Get("/user/" + u.Uname)
+			http.Redirect(w, req, "/user/"+u.Uname, 301)
 		} else {
 			w.WriteHeader(http.StatusUnauthorized)
 		}
@@ -65,12 +65,14 @@ func main() {
 		}
 		if user.IsLogged {
 			items, _ := back.GetUserItems(user)
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("You have " + strconv.Itoa(len(items)) + " notifications "))
 			for u := range items {
 				w.Write(api.RenderJson(items[u]))
 			}
 		} else {
+			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte("USER not logged in"))
-			http.Get("/login")
 		}
 	})
 

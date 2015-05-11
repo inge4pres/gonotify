@@ -74,6 +74,8 @@ func (u *DbParam) GetUserByField(field, value string) (*User, error) {
 	db, err := openConn(u)
 	defer db.Close()
 	user := NewUser()
+	l.Println("EXECUTING : SELECT * from " + u.table + " WHERE " + field + " = " + value)
+	dblog.WriteLog(lbuf, "INFO")
 	err = db.QueryRow("SELECT * from "+u.table+" WHERE "+field+" = ?", value).Scan(&user.Id, &user.Modified, &user.Uname, &user.Rname, &user.Mail, &user.Pwd, &user.IsLogged)
 	return user, err
 }
@@ -82,11 +84,12 @@ func (i *DbParam) GetUserItems(user *User) ([]Item, error) {
 	db, err := openConn(i)
 	defer db.Close()
 	var items []Item
-	res, _ := db.Query("SELECT * FROM "+i.table+" WHERE recipient = ?", user.Mail)
+	res, err := db.Query("SELECT * FROM "+i.table+" WHERE recipient = ?", user.Mail)
 	defer res.Close()
 	for res.Next() {
 		item := NewItem()
-		if err := res.Scan(&item); err != nil {
+		if err := res.Scan(&item.Id, &item.Time, &item.Notify.Level, &item.Notify.Rcpnt, &item.Notify.Sndr,
+			&item.Notify.Subject, &item.Notify.Message, &item.Archived); err != nil {
 			return items, err
 		}
 		items = append(items, item)
