@@ -21,9 +21,9 @@ func NewResponse() *Response {
 
 func ApiHandler(req *http.Request, w http.ResponseWriter) {
 	api := mux.NewRouter()
-	resp := NewResponse()
-	api.HandleFunc("/items/{id:[0-9]+}", func() []byte {
-		resp, _ := GetItem(mux.Vars(req)["id"])
+	var resp []byte
+	api.HandleFunc("/items/{id:[0-9]+}", func(wr http.ResponseWriter, r *http.Request) {
+		resp, _ = GetItem(mux.Vars(req)["id"])
 	}).Methods("GET")
 	w.Write(resp)
 }
