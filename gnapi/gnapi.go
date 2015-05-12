@@ -2,6 +2,7 @@ package gnapi
 
 import (
 	"encoding/json"
+	"github.com/gorilla/mux"
 	back "gonotify/gnbackend"
 	"net/http"
 	"strconv"
@@ -14,8 +15,17 @@ type Response struct {
 	Err    string    `json:"error"`
 }
 
-func NewResponse() Response {
-	return Response{Action: "", Item: back.NewItem(), Status: 0, Err: ""}
+func NewResponse() *Response {
+	return &Response{Action: "", Item: back.NewItem(), Status: 0, Err: ""}
+}
+
+func ApiHandler(req *http.Request, w http.ResponseWriter) {
+	api := mux.NewRouter()
+	resp := NewResponse()
+	api.HandleFunc("/items/{id:[0-9]+}", func() []byte {
+		resp, _ := GetItem(mux.Vars(req)["id"])
+	}).Methods("GET")
+	w.Write(resp)
 }
 
 func GetItem(id string) ([]byte, error) {
