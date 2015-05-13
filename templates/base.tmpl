@@ -1,7 +1,13 @@
-{{template "header"}}
-
-
-
-
-
-{{template "footer"}}
+{{template "head"}}
+{{if .Err}}
+	<h2>Error mate:</h2>
+	<h3>{{.Err}}</h2>
+{{else}}
+	{{range .Items}} 
+		<p><h3>Notification n. {{ .Id }} - {{ .Time }}</h3><p>
+		<p><h4>From:  {{ .Notify.Sndr }}</h4></p>
+		<p><h4>[{{.Notify.Level}}] {{ .Notify.Subject }}</h4></p>
+		<p><h4>{{ .Notify.Message }}</h4></p>
+	{{end}}
+{{end}}
+{{template "foot"}}

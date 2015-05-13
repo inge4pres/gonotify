@@ -1,7 +1,14 @@
-{{template "header"}}
+{{template "head"}}
 
+<form action="/login" method="POST" class="px2 py2 m5 sm-col-6 center">
+  	<fieldset class="fieldset-reset">
+	  	<label for="username">User Name</label>
+		<input id="username" name="username" type="text" class="full-width field-light" required>
+		<label for="password">Password</label>
+		<input id="password" name="password" type="password" class="full-width field-light" required>
+			</fieldset>
+  	<button type="submit" class="button bg-black" action="submit">Log In</button>
+  	<a href="/" class="button bg-gray">Cancel</a>
+</form>
 
-
-
-
-{{template "footer"}}
+{{template "foot"}}
