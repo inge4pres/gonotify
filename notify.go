@@ -2,49 +2,21 @@
 package main
 
 import (
-	_ "fmt"
-	"github.com/gorilla/mux"
+	"fmt"
+	"github.com/gin-gonic/gin"
 	api "gonotify/gnapi"
-	_ "gonotify/gnbackend"
+	back "gonotify/gnbackend"
 	"net/http"
-	_ "strconv"
 )
 
 func main() {
-	r := mux.NewRouter()
-	a := r.PathPrefix("/api").Subrouter()
-	a.HandleFunc("/", api.ApiHandler())
+	r := gin.Default()
+	r.GET("/api/:id", apiGet)
+	r.POST("/api/", apiPost)
+	r.PUT("/api/:id", apiPut)
+	r.DELETE("/api/:id", apiDelete)
 
-	//	m.Get("/api/:id", func(p martini.Params, w http.ResponseWriter) {
-	//		resp, _ := api.GetItem(p["id"])
-	//		w.Write(resp)
-	//	})
-	//	m.Post("/api", func(req *http.Request, w http.ResponseWriter) {
-	//		resp, _ := api.PostItem(req)
-	//		w.Write(resp)
-	//	})
-	//	m.Patch("/api/:id", func(p martini.Params, w http.ResponseWriter) {
-	//		intid, _ := strconv.Atoi(p["id"])
-	//		resp, _ := api.ArchiveItem(int64(intid))
-	//		w.Write(resp)
-	//	})
-	//	m.Delete("/api/:id", func(p martini.Params, w http.ResponseWriter) {
-	//		intid, _ := strconv.Atoi(p["id"])
-	//		resp, _ := api.DeleteItem(int64(intid))
-	//		w.Write(resp)
-	//	})
-	//	m.Post("/register", func(req *http.Request, w http.ResponseWriter) {
-	//		uname := req.FormValue("username")
-	//		rname := req.FormValue("realname")
-	//		mail := req.FormValue("mail")
-	//		pwd := req.FormValue("password")
-	//		if err := back.RegisterUser(uname, rname, mail, pwd); err != nil {
-	//			w.WriteHeader(http.StatusInternalServerError)
-	//			w.Write([]byte(err.Error()))
-	//		}
-	//		w.WriteHeader(http.StatusOK)
-	//		w.Write([]byte("REGISTERED"))
-	//	})
+	r.POST("/register", register)
 	//	m.Post("/login", func(req *http.Request, w http.ResponseWriter) {
 	//		u, err := back.GetUserByName(req.FormValue("username"))
 	//		if err != nil {
@@ -79,4 +51,32 @@ func main() {
 
 	fmt.Println("Serving on localhost:4488")
 	http.ListenAndServe(":4488", r)
+}
+
+func register(c *gin.Context) {
+	uname := c.Request.FormValue("username")
+	rname := c.Request.FormValue("realname")
+	mail := c.Request.FormValue("mail")
+	pwd := c.Request.FormValue("password")
+	if err := back.RegisterUser(uname, rname, mail, pwd); err != nil {
+		c.HTMLString(http.StatusInternalServerError, "Error : %s", err.Error())
+	}
+	c.HTMLString(http.StatusAccepted, "Registered with username %s!", uname)
+}
+
+func apiGet(c *gin.Context) {
+	resp := api.GetItem(c.Params.ByName("id"))
+	c.JSON(resp.Status, resp)
+}
+func apiPost(c *gin.Context) {
+	resp := api.GetItem(c.Params.ByName("id"))
+	c.JSON(resp.Status, resp)
+}
+func apiPut(c *gin.Context) {
+	resp := api.PostItem(c.Request)
+	c.JSON(resp.Status, resp)
+}
+func apiDelete(c *gin.Context) {
+	resp := api.DeleteItem(c.Params.ByName("id"))
+	c.JSON(resp.Status, resp)
 }
