@@ -49,7 +49,7 @@ func GetUserItems(user *User) ([]Item, error) {
 func GetItem(id int64) (item Item, err error) {
 	item, err = dbitem.GetItem(id)
 	if err != nil {
-		log.Printf("GET failed for ID %d", id)
+		log.Printf("GET ITEM with id %d FAILED! Cause : %s", id, err.Error())
 		dblog.WriteLog(logbuf, "ERROR")
 		return NewItem(), err
 	}
@@ -68,8 +68,8 @@ func PostItem(item Item) (int64, error) {
 func DeleteItem(id int64) error {
 	err := dbitem.DeleteById(id)
 	if err != nil {
-		log.Printf("NOT Deleting ITEM with ID %d because of %s", id, err.Error())
-		_ = dblog.WriteLog(logbuf, "INFO")
+		log.Printf("NOT Deleting ITEM with id %d FAILED! Cause : %s", id, err.Error())
+		_ = dblog.WriteLog(logbuf, "ERROR")
 		return err
 	}
 	log.Printf("Deleting ITEM with ID %d", id)
@@ -77,6 +77,10 @@ func DeleteItem(id int64) error {
 	return err
 }
 
-func ArchiveItem(id int64) error {
-	return dbitem.UpdateFieldById(id, "archived", true)
+func ArchiveItem(id int64) (err error) {
+	if err = dbitem.UpdateFieldById(id, "archived", true); err != nil {
+		logg.Printf("ARCHIVE for ITEM with id %d FAILED! Cause : %s", id, err.Error())
+		dblog.WriteLog(logbuf, "ERROR")
+	}
+	return
 }
