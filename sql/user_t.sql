@@ -9,5 +9,7 @@ create table gn_user (
 	pwd BLOB NOT NULL,
 	islogged BOOL DEFAULT FALSE,
 	UNIQUE INDEX mail_idx USING HASH (id,mail),
-	CONSTRAINT pk_uid PRIMARY KEY (id,uname)
+	UNIQUE INDEX uname_idx USING BTREE (id,uname),
+	CONSTRAINT uni_uname UNIQUE (uname),
+	CONSTRAINT pk_mail PRIMARY KEY(uname,mail)
 );
