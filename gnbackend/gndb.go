@@ -36,11 +36,16 @@ func (l *DbParam) WriteLog(mex bytes.Buffer, level string) error {
 	return nil
 }
 
-func (u *DbParam) InsertUser(us *User) error {
+func (u *DbParam) InsertUser(us *User) (*User, error) {
 	db, err := openConn(u)
 	defer db.Close()
-	_, err = db.Exec("INSERT INTO "+u.table+" VALUES (null,?,?,?,?,?,?)", us.Modified, us.Uname, us.Rname, us.Mail, us.Pwd, false)
-	return err
+	res, err := db.Exec("INSERT INTO "+u.table+" VALUES (null,?,?,?,?,?,?)", us.Modified, us.Uname, us.Rname, us.Mail, us.Pwd, false)
+	if err != nil {
+		return us, err
+	}
+	id, err := res.LastInsertId()
+	us.Id = id
+	return us, err
 }
 
 func (i *DbParam) GetItem(id int64) (Item, error) {

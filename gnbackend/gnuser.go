@@ -26,7 +26,7 @@ func NewUser() *User {
 	}
 }
 
-func RegisterUser(uname, rname, mail, pwd string) error {
+func RegisterUser(uname, rname, mail, pwd string) (*User, error) {
 	user := NewUser()
 	user.Uname = uname
 	user.Rname = rname
