@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	api "gonotify/gnapi"
 	back "gonotify/gnbackend"
+	web "gonotify/gnweb"
 	"net/http"
 )
 
@@ -21,6 +22,7 @@ func main() {
 	r.PUT("/api/:id", apiPut)
 	r.DELETE("/api/:id", apiDelete)
 
+	r.GET("/signup", getSignup)
 	r.POST("/signup", postSignup)
 	r.GET("/login", getLogin)
 	r.POST("/login", postLogin)
@@ -34,23 +36,29 @@ func main() {
 }
 
 func getIndex(c *gin.Context) {
-	c.HTML(http.StatusOK, "index.tmpl", nil)
+	w := web.New()
+	c.HTML(http.StatusOK, "index.tmpl", &w)
 }
 
 func getUser(c *gin.Context) {
+	w := web.New()
 	user, err := back.GetUserByName(c.Params.ByName("name"))
 	if err != nil {
-		c.HTML(http.StatusInternalServerError, "error.tmpl", err)
+		w.Err = err
 	}
-	if items, err := back.GetUserItems(user); err != nil {
-		c.HTML(http.StatusInternalServerError, "error.tmpl", err)
+	items, err := back.GetUserItems(user)
+	if err != nil {
+		w.Status = http.StatusInternalServerError
+		w.Err = err
 	} else {
-		c.HTML(http.StatusOK, "base.tmpl", items)
+		w.Items = items
 	}
+	c.HTML(w.Status, "base.tmpl", &w)
 }
 func getLogin(c *gin.Context) {
-	c.JSON(http.StatusOK, "LOGGED IN")
-	c.HTML(http.StatusOK, "login.tmpl", nil)
+	w := web.New()
+	//	c.JSON(http.StatusOK, "LOGGED IN")
+	c.HTML(http.StatusOK, "login.tmpl", &w)
 }
 func postLogin(c *gin.Context) {
 	u, err := back.GetUserByName(c.Request.FormValue("username"))
@@ -59,36 +67,39 @@ func postLogin(c *gin.Context) {
 		c.HTMLString(http.StatusInternalServerError, err.Error())
 	}
 	if u.VerifyPwd(c.Request.FormValue("password")) {
-		c.JSON(http.StatusOK, "VERIFIED")
 		c.Redirect(http.StatusMovedPermanently, "/user/"+u.Uname)
 	} else {
-		c.JSON(http.StatusUnauthorized, "NOT VERIFIED")
 		c.Redirect(http.StatusMovedPermanently, "/login")
 	}
 }
+func getSignup(c *gin.Context) {
+	w := web.New()
+	c.HTML(http.StatusOK, "signup.tmpl", &w)
+}
 func postSignup(c *gin.Context) {
+	w := web.New()
 	uname := c.Request.FormValue("username")
 	rname := c.Request.FormValue("realname")
-	mail := c.Request.FormValue("mail")
+	mail := c.Request.FormValue("email")
 	pwd := c.Request.FormValue("password")
-	if err := back.RegisterUser(uname, rname, mail, pwd); err != nil {
-		c.JSON(http.StatusInternalServerError, err)
-		c.HTML(http.StatusInternalServerError, "error.tmpl", err)
-
+	user, err := back.RegisterUser(uname, rname, mail, pwd)
+	if err != nil {
+		w.Err = err
+		w.Status = http.StatusInternalServerError
 	}
-	c.JSON(http.StatusAccepted, "OK")
-	c.HTML(http.StatusAccepted, "index.tmpl", nil)
+	w.User = user
+	c.HTML(w.Status, "index.tmpl", &w)
 }
 func apiGet(c *gin.Context) {
 	resp := api.GetItem(c.Params.ByName("id"))
 	c.JSON(resp.Status, resp)
 }
 func apiPost(c *gin.Context) {
-	resp := api.GetItem(c.Params.ByName("id"))
+	resp := api.PostItem(c.Request)
 	c.JSON(resp.Status, resp)
 }
 func apiPut(c *gin.Context) {
-	resp := api.PostItem(c.Request)
+	resp := api.ArchiveItem(c.Params.ByName("id"))
 	c.JSON(resp.Status, resp)
 }
 func apiDelete(c *gin.Context) {
