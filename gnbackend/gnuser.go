@@ -43,8 +43,8 @@ func (u *User) VerifyPwd(pwd string) bool {
 	if bytes.Equal(encPwd(pwd), u.Pwd) {
 		u.IsLogged = true
 		if err := u.updateLogin(u.IsLogged); err != nil {
-			l.Println("LOGIN FAILED for USER " + u.Uname + " Cause: " + err.Error())
-			dblog.WriteLog(lbuf, "ERROR")
+			logg.Println("LOGIN FAILED for USER " + u.Uname + " Cause: " + err.Error())
+			dblog.WriteLog(logbuf, "ERROR")
 			return false
 		}
 	}

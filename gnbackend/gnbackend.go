@@ -9,8 +9,8 @@ import (
 var dblog *DbParam
 var dbitem *DbParam
 var dbuser *DbParam
-var l *log.Logger
-var lbuf bytes.Buffer
+var logg *log.Logger
+var logbuf bytes.Buffer
 
 type Note struct {
 	Level   string `json:"level"`
@@ -28,7 +28,7 @@ type Item struct {
 }
 
 func init() {
-	l = log.New(&lbuf, "", log.Lshortfile)
+	logg = log.New(&logbuf, "", log.Lshortfile)
 	dblog = NewDbConn("gonotify", "n0tifyM3", "(sviluppo.mtl.it:3306)", "gonotify", "gn_log", []string{"parseTime=true"})
 	dbitem = NewDbConn("gonotify", "n0tifyM3", "(sviluppo.mtl.it:3306)", "gonotify", "gn_item", []string{"parseTime=true"})
 	dbuser = NewDbConn("gonotify", "n0tifyM3", "(sviluppo.mtl.it:3306)", "gonotify", "gn_user", []string{"parseTime=true"})
@@ -49,8 +49,8 @@ func GetUserItems(user *User) ([]Item, error) {
 func GetItem(id int64) (item Item, err error) {
 	item, err = dbitem.GetItem(id)
 	if err != nil {
-		l.Printf("GET failed for ID %d", id)
-		dblog.WriteLog(lbuf, "ERROR")
+		log.Printf("GET failed for ID %d", id)
+		dblog.WriteLog(logbuf, "ERROR")
 		return NewItem(), err
 	}
 	return item, err
@@ -59,8 +59,8 @@ func GetItem(id int64) (item Item, err error) {
 func PostItem(item Item) (int64, error) {
 	id, err := dbitem.InsertItem(item)
 	if err != nil {
-		l.Printf("Not adding new item from %s to %s because of %s", item.Notify.Sndr, item.Notify.Rcpnt, err.Error())
-		_ = dblog.WriteLog(lbuf, "ERROR")
+		log.Printf("Not adding new item from %s to %s because of %s", item.Notify.Sndr, item.Notify.Rcpnt, err.Error())
+		_ = dblog.WriteLog(logbuf, "ERROR")
 	}
 	return id, err
 }
@@ -68,12 +68,12 @@ func PostItem(item Item) (int64, error) {
 func DeleteItem(id int64) error {
 	err := dbitem.DeleteById(id)
 	if err != nil {
-		l.Printf("NOT Deleting ITEM with ID %d because of %s", id, err.Error())
-		_ = dblog.WriteLog(lbuf, "INFO")
+		log.Printf("NOT Deleting ITEM with ID %d because of %s", id, err.Error())
+		_ = dblog.WriteLog(logbuf, "INFO")
 		return err
 	}
-	l.Printf("Deleting ITEM with ID %d", id)
-	_ = dblog.WriteLog(lbuf, "INFO")
+	log.Printf("Deleting ITEM with ID %d", id)
+	_ = dblog.WriteLog(logbuf, "INFO")
 	return err
 }
 

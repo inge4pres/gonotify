@@ -74,8 +74,8 @@ func (u *DbParam) GetUserByField(field, value string) (*User, error) {
 	db, err := openConn(u)
 	defer db.Close()
 	user := NewUser()
-	l.Println("EXECUTING : SELECT * from " + u.table + " WHERE " + field + " = " + value)
-	dblog.WriteLog(lbuf, "INFO")
+	logg.Println("EXECUTING : SELECT * from " + u.table + " WHERE " + field + " = " + value)
+	dblog.WriteLog(logbuf, "INFO")
 	err = db.QueryRow("SELECT * from "+u.table+" WHERE "+field+" = ?", value).Scan(&user.Id, &user.Modified, &user.Uname, &user.Rname, &user.Mail, &user.Pwd, &user.IsLogged)
 	return user, err
 }
