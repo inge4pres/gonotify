@@ -1,7 +1,8 @@
-{{template "head"}}
+{{template "head" . }}
 {{if .Err}}
-	<h2>Error mate:</h2>
-	<h3>{{.Err}}</h2>
+	{{template "error"}}
+{{else}}
+
 {{end}}
 
 {{template "foot"}}
