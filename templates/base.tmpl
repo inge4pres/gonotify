@@ -3,7 +3,7 @@
 {{if .Err}}
 	{{template "error"}}
 {{else}}
-		<div class="flex center field-light transparent">
+		<div class="field-light transparent">
 		  <a href="/user/{{.User.Uname}}/error" class="flex-auto button rounded-left">ERROR</a>
 		  <a href="/user/{{.User.Uname}}/warn" class="flex-auto button border-left not-rounded">WARNING</a>
 		  <a href="/user/{{.User.Uname}}/info" class="flex-auto button border-left rounded-right">INFO</a>
