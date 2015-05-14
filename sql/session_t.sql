@@ -4,5 +4,5 @@ create table gn_session (
 	id SERIAL PRIMARY KEY NOT NULL AUTO_INCREMENT,
 	created TIMESTAMP NOT NULL DEFAULT now(),
 	uid BIGINT NOT NULL,
-	scookie BLOB NOT NULL
+	scookie SMALLTEXT NOT NULL
 );

@@ -1,4 +1,4 @@
-package gnapi
+package gnfrontend
 
 import (
 	"encoding/json"
