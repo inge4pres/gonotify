@@ -14,5 +14,6 @@ func New() *Base {
 	return &Base{
 		Title:  "GoNotify",
 		Status: 200,
+		User:   back.NewUser(),
 	}
 }
