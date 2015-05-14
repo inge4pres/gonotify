@@ -8,22 +8,20 @@
   <link href='https://fonts.googleapis.com/css?family=Arimo:400,400italic,700' rel='stylesheet' type='text/css'>
   <title>{{.Title}}</title>
 </head>
-<body>
+<body class="site">
 <!-- NAV BAR -->
-<div class="responsive clearfix mb2 white bg-black navbar">
-	<div class="left">
-	<a class="button py2 m1 button-transparent menu-icon" href="/">Home</a>
+<nav class="responsive clearfix white bg-black">
+	<div class="sm-col">
+	<a class="button py2 m1 button-transparent menu-icon" href="/">GoNotify!</a>
 	</div>
+	<div class="sm-col-right">
 	{{if .User.IsLogged}}
-	<div class="right">
 	    <a href="/user/{{.User.Uname}}/settings" class="button py2 m1 button-transparent menu-icon">{{.User.Uname}}</a>
 		<a href="/logout" class="button py2 m1 button-transparent menu-icon">Logout</a>
-	</div>
 	{{else}}
-	<div class="right">
 	    <a href="/login" class="button py2 m1 button-transparent menu-icon">Login</a>
 	    <a href="/signup" class="button py2 m1 button-transparent menu-icon">Signup</a>
-	</div>
 	{{end}}	
-</div>
+	</div>
+</nav>
 {{end}}
