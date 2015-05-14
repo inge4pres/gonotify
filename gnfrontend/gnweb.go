@@ -1,4 +1,4 @@
-package gnweb
+package gnfrontend
 
 import back "gonotify/gnbackend"
 

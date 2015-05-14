@@ -4,9 +4,8 @@ package main
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	api "gonotify/gnapi"
 	back "gonotify/gnbackend"
-	web "gonotify/gnweb"
+	fe "gonotify/gnfrontend"
 	"net/http"
 )
 
@@ -36,11 +35,11 @@ func main() {
 }
 
 func getIndex(c *gin.Context) {
-	w := web.New()
+	w := fe.New()
 	c.HTML(http.StatusOK, "index.tmpl", &w)
 }
 func getUser(c *gin.Context) {
-	w := web.New()
+	w := fe.New()
 	user, err := back.GetUserByName(c.Params.ByName("name"))
 	if err != nil {
 		w.Err = err
@@ -57,7 +56,7 @@ func getUser(c *gin.Context) {
 	c.HTML(w.Status, "base.tmpl", &w)
 }
 func getLogin(c *gin.Context) {
-	w := web.New()
+	w := fe.New()
 	//	c.JSON(http.StatusOK, "LOGGED IN")
 	c.HTML(http.StatusOK, "login.tmpl", &w)
 }
@@ -74,11 +73,11 @@ func postLogin(c *gin.Context) {
 	}
 }
 func getSignup(c *gin.Context) {
-	w := web.New()
+	w := fe.New()
 	c.HTML(http.StatusOK, "signup.tmpl", &w)
 }
 func postSignup(c *gin.Context) {
-	w := web.New()
+	w := fe.New()
 	uname := c.Request.FormValue("username")
 	rname := c.Request.FormValue("realname")
 	mail := c.Request.FormValue("email")
@@ -92,18 +91,18 @@ func postSignup(c *gin.Context) {
 	c.HTML(w.Status, "index.tmpl", &w)
 }
 func apiGet(c *gin.Context) {
-	resp := api.GetItem(c.Params.ByName("id"))
+	resp := fe.GetItem(c.Params.ByName("id"))
 	c.JSON(resp.Status, resp)
 }
 func apiPost(c *gin.Context) {
-	resp := api.PostItem(c.Request)
+	resp := fe.PostItem(c.Request)
 	c.JSON(resp.Status, resp)
 }
 func apiPut(c *gin.Context) {
-	resp := api.ArchiveItem(c.Params.ByName("id"))
+	resp := fe.ArchiveItem(c.Params.ByName("id"))
 	c.JSON(resp.Status, resp)
 }
 func apiDelete(c *gin.Context) {
-	resp := api.DeleteItem(c.Params.ByName("id"))
+	resp := fe.DeleteItem(c.Params.ByName("id"))
 	c.JSON(resp.Status, resp)
 }
