@@ -39,7 +39,6 @@ func getIndex(c *gin.Context) {
 	w := web.New()
 	c.HTML(http.StatusOK, "index.tmpl", &w)
 }
-
 func getUser(c *gin.Context) {
 	w := web.New()
 	user, err := back.GetUserByName(c.Params.ByName("name"))
@@ -53,6 +52,8 @@ func getUser(c *gin.Context) {
 	} else {
 		w.Items = items
 	}
+	w.Title += " - " + user.Uname
+	w.User = user
 	c.HTML(w.Status, "base.tmpl", &w)
 }
 func getLogin(c *gin.Context) {
