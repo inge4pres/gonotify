@@ -90,6 +90,8 @@ func postSignup(c *gin.Context) {
 	w.User = user
 	c.HTML(w.Status, "index.tmpl", &w)
 }
+
+//API
 func apiGet(c *gin.Context) {
 	resp := fe.GetItem(c.Params.ByName("id"))
 	c.JSON(resp.Status, resp)
@@ -106,3 +108,5 @@ func apiDelete(c *gin.Context) {
 	resp := fe.DeleteItem(c.Params.ByName("id"))
 	c.JSON(resp.Status, resp)
 }
+
+//SESSION

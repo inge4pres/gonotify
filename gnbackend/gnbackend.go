@@ -9,6 +9,7 @@ import (
 var dblog *DbParam
 var dbitem *DbParam
 var dbuser *DbParam
+var dbsess *DbParam
 var logg *log.Logger
 var logbuf bytes.Buffer
 
@@ -32,6 +33,7 @@ func init() {
 	dblog = NewDbConn("gonotify", "n0tifyM3", "(sviluppo.mtl.it:3306)", "gonotify", "gn_log", []string{"parseTime=true"})
 	dbitem = NewDbConn("gonotify", "n0tifyM3", "(sviluppo.mtl.it:3306)", "gonotify", "gn_item", []string{"parseTime=true"})
 	dbuser = NewDbConn("gonotify", "n0tifyM3", "(sviluppo.mtl.it:3306)", "gonotify", "gn_user", []string{"parseTime=true"})
+	dbsess = NewDbConn("gonotify", "n0tifyM3", "(sviluppo.mtl.it:3306)", "gonotify", "gn_session", []string{"parseTime=true"})
 }
 
 func NewItem() Item {
@@ -45,7 +47,6 @@ func NewItem() Item {
 func GetUserItems(user *User) ([]Item, error) {
 	return dbitem.GetUserItems(user)
 }
-
 func GetItem(id int64) (item Item, err error) {
 	item, err = dbitem.GetItem(id)
 	if err != nil {
@@ -55,7 +56,6 @@ func GetItem(id int64) (item Item, err error) {
 	}
 	return item, err
 }
-
 func PostItem(item Item) (int64, error) {
 	id, err := dbitem.InsertItem(item)
 	if err != nil {
@@ -64,7 +64,6 @@ func PostItem(item Item) (int64, error) {
 	}
 	return id, err
 }
-
 func DeleteItem(id int64) error {
 	err := dbitem.DeleteById(id)
 	if err != nil {
@@ -76,11 +75,13 @@ func DeleteItem(id int64) error {
 	_ = dblog.WriteLog(logbuf, "INFO")
 	return err
 }
-
 func ArchiveItem(id int64) (err error) {
 	if err = dbitem.UpdateFieldById(id, "archived", true); err != nil {
 		logg.Printf("ARCHIVE for ITEM with id %d FAILED! Cause : %s", id, err.Error())
 		dblog.WriteLog(logbuf, "ERROR")
 	}
 	return
+}
+func StartSession(uid int64, scookie string, expires time.Time) (int64, error) {
+	return dbsess.insertSession(uid, scookie, expires)
 }

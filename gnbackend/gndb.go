@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
+	"time"
 )
 
 var db *sql.DB
@@ -107,6 +108,16 @@ func (u *DbParam) UpdateFieldById(id int64, field string, value interface{}) err
 	defer db.Close()
 	_, err = db.Exec("UPDATE "+u.table+" SET "+field+" = ? WHERE id = ?", value, id)
 	return err
+}
+
+func (s *DbParam) insertSession(uid int64, scookie string, expires time.Time) (int64, error) {
+	db, err := openConn(s)
+	defer db.Close()
+	res, err := db.Exec("INSERT INTO "+s.table+" VALUES( null, null, ?, ?, ?)", expires, uid, scookie)
+	if err != nil {
+		return -1, err
+	}
+	return res.LastInsertId()
 }
 
 func openConn(db *DbParam) (*sql.DB, error) {
