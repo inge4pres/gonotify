@@ -17,11 +17,13 @@
 	    </thead>
 		<tbody>
 		{{range .Items}} 
-			<tr><td>{{ .Time }}</td> 
+			<tr>
+				<td>{{ .Time }}</td> 
 				<td>{{ .Notify.Sndr }}</td>
 				<td>[{{.Notify.Level}}] {{ .Notify.Subject }}</td> 
 				<td>{{ .Notify.Message }}</td>
 				<td><button id="archive" class="bg-black button center"> </td>
+			</tr>
 		{{end}}
 		</tbody>
 		</table>
