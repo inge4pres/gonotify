@@ -76,13 +76,11 @@ func (o *DbParam) DeleteById(id int64) error {
 	return err
 }
 
-func (u *DbParam) GetUserByField(field, value string) (*User, error) {
-	db, err := openConn(u)
+func (u *DbParam) GetUserByField(field string, value interface{}) (*User, error) {
+	db, _ := openConn(u)
 	defer db.Close()
 	user := NewUser()
-	logg.Println("EXECUTING : SELECT * from " + u.table + " WHERE " + field + " = " + value)
-	dblog.WriteLog(logbuf, "INFO")
-	err = db.QueryRow("SELECT * from "+u.table+" WHERE "+field+" = ?", value).Scan(&user.Id, &user.Modified, &user.Uname, &user.Rname, &user.Mail, &user.Pwd, &user.IsLogged)
+	err := db.QueryRow("SELECT * from "+u.table+" WHERE "+field+" = ?", value).Scan(&user.Id, &user.Modified, &user.Uname, &user.Rname, &user.Mail, &user.Pwd, &user.IsLogged)
 	return user, err
 }
 
@@ -120,11 +118,20 @@ func (s *DbParam) insertSession(uid int64, scookie string, expires time.Time) (i
 	return res.LastInsertId()
 }
 
-func (s *DbParam) searchSession(value string) error {
+func (s *DbParam) selectSessionId(value string) (int64, error) {
 	db, _ := openConn(s)
 	defer db.Close()
 	var id int64
-	return db.QueryRow("SELECT id FROM gn_session where scookie = ?", value).Scan(&id)
+	err := db.QueryRow("SELECT id FROM gn_session where scookie = ?", value).Scan(&id)
+	return id, err
+}
+
+func (s *DbParam) selectSessionUid(value string) (int64, error) {
+	db, _ := openConn(s)
+	defer db.Close()
+	var id int64
+	err := db.QueryRow("SELECT uid FROM gn_session where scookie = ?", value).Scan(&id)
+	return id, err
 }
 
 func openConn(db *DbParam) (*sql.DB, error) {

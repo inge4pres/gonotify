@@ -91,7 +91,19 @@ func StartSession(uid int64, scookie string, expires time.Time) (id int64, err e
 	dblog.WriteLog(logbuf, "INFO")
 	return
 }
-
-func GetSession(value string) error {
-	return dbsess.searchSession(value)
+func StopSession(sessid string) (err error) {
+	id, _ := dbsess.selectSessionId(sessid)
+	uid, err := dbsess.selectSessionUid(sessid)
+	user, err := GetUserById(uid)
+	if err != nil {
+		return
+	}
+	user.updateLogin(false)
+	return dbsess.DeleteById(id)
+}
+func FindSessionByCookie(value string) error {
+	if _, err := dbsess.selectSessionId(value); err != nil {
+		return err
+	}
+	return nil
 }

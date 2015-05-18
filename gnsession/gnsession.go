@@ -43,12 +43,14 @@ func createCookieValue(dest time.Time, val string) string {
 	return base64.StdEncoding.EncodeToString(h.Sum(nil))
 }
 
-func VerifyCookie(value string) bool {
-	if err := b.GetSession(value); err != nil {
+func VerifyCookie(c *http.Cookie) bool {
+	if err := b.FindSessionByCookie(c.Value); err != nil {
 		return false
 	}
 	return true
 }
 
-//func GetUserSession(u *b.User) (int64, error) {
-//}
+func Logout(c *http.Cookie) error {
+	c.MaxAge = 0
+	return b.StopSession(c.Value)
+}

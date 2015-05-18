@@ -5,6 +5,6 @@ create table gn_session (
 	created TIMESTAMP NOT NULL DEFAULT NOW(),
 	expires TIMESTAMP NOT NULL,
 	uid BIGINT NOT NULL,
-	scookie TINYTEXT NOT NULL,
-	INDEX uid_idx USING BTREE (uid)
+	scookie VARCHAR(128) NOT NULL,
+	UNIQUE INDEX uid_idx USING BTREE (uid,scookie)
 );

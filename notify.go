@@ -17,8 +17,8 @@ func main() {
 	r.Static("/img", "./static/img")
 	r.Static("/js", "./static/js")
 
-	r.GET("/api/:id", apiGet)
-	r.POST("/api/", apiPost)
+	r.GET("/api/:id", validSession, apiGet)
+	r.POST("/api/", validSession, apiPost)
 	r.PUT("/api/:id", apiPut)
 	r.DELETE("/api/:id", apiDelete)
 
@@ -26,6 +26,7 @@ func main() {
 	r.POST("/signup", postSignup)
 	r.GET("/login", getLogin)
 	r.POST("/login", postLogin)
+	r.GET("/logout", validSession, logOut)
 
 	r.GET("/user/:name", getUser)
 
@@ -90,16 +91,14 @@ func postSignup(c *gin.Context) {
 		w.Status = http.StatusInternalServerError
 	}
 	w.User = user
+	setSessionCookie(c, user)
 	c.HTML(w.Status, "index.tmpl", &w)
 }
 
 //API
 func apiGet(c *gin.Context) {
-	if validSession(c) {
-		resp := fe.GetItem(c.Params.ByName("id"))
-		c.JSON(resp.Status, resp)
-	}
-	c.JSON(http.StatusUnauthorized, "Authentication Error")
+	resp := fe.GetItem(c.Params.ByName("id"))
+	c.JSON(resp.Status, resp)
 }
 func apiPost(c *gin.Context) {
 	resp := fe.PostItem(c.Request)
@@ -122,11 +121,21 @@ func setSessionCookie(c *gin.Context, u *back.User) {
 	}
 	http.SetCookie(c.Writer, session.Scookie)
 }
-
-func validSession(c *gin.Context) bool {
+func validSession(c *gin.Context) {
 	cookie, err := c.Request.Cookie("sessionid")
-	if err != nil {
-		return false
+	if err != nil || cookie == nil {
+		c.Writer.WriteHeader(http.StatusBadRequest)
+	} else {
+		if se.VerifyCookie(cookie) {
+			c.Writer.WriteHeader(http.StatusContinue)
+		}
 	}
-	return se.VerifyCookie(cookie.Value)
+}
+func logOut(c *gin.Context) {
+	cookie, _ := c.Request.Cookie("sessionid")
+	err := se.Logout(cookie)
+	if err != nil {
+		c.Redirect(http.StatusInternalServerError, "/")
+	}
+	c.Redirect(http.StatusOK, "/")
 }
