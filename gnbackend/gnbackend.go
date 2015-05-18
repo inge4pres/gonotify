@@ -82,6 +82,16 @@ func ArchiveItem(id int64) (err error) {
 	}
 	return
 }
-func StartSession(uid int64, scookie string, expires time.Time) (int64, error) {
-	return dbsess.insertSession(uid, scookie, expires)
+func StartSession(uid int64, scookie string, expires time.Time) (id int64, err error) {
+	if id, err = dbsess.insertSession(uid, scookie, expires); err != nil {
+		logg.Printf("Session creation failed for user with ID %d", scookie, uid)
+		dblog.WriteLog(logbuf, "ERROR")
+	}
+	logg.Printf("Session cookie %s created for user with ID %d", scookie, uid)
+	dblog.WriteLog(logbuf, "INFO")
+	return
+}
+
+func GetSession(value string) error {
+	return dbsess.searchSession(value)
 }

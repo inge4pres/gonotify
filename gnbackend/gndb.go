@@ -120,6 +120,13 @@ func (s *DbParam) insertSession(uid int64, scookie string, expires time.Time) (i
 	return res.LastInsertId()
 }
 
+func (s *DbParam) searchSession(value string) error {
+	db, _ := openConn(s)
+	defer db.Close()
+	var id int64
+	return db.QueryRow("SELECT id FROM gn_session where scookie = ?", value).Scan(&id)
+}
+
 func openConn(db *DbParam) (*sql.DB, error) {
 	var p string
 	if db.params != nil {

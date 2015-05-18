@@ -48,7 +48,7 @@ func (u *User) VerifyPwd(pwd string) bool {
 			return false
 		}
 	}
-	return u.IsLogged
+	return true
 }
 
 func (u *User) updateLogin(islogged bool) error {

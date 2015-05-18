@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	back "gonotify/gnbackend"
 	fe "gonotify/gnfrontend"
+	se "gonotify/gnsession"
 	"net/http"
 )
 
@@ -67,6 +68,7 @@ func postLogin(c *gin.Context) {
 		c.HTMLString(http.StatusInternalServerError, err.Error())
 	}
 	if u.VerifyPwd(c.Request.FormValue("password")) {
+		setSessionCookie(c, u)
 		c.Redirect(http.StatusMovedPermanently, "/user/"+u.Uname)
 	} else {
 		c.Redirect(http.StatusMovedPermanently, "/login")
@@ -93,8 +95,11 @@ func postSignup(c *gin.Context) {
 
 //API
 func apiGet(c *gin.Context) {
-	resp := fe.GetItem(c.Params.ByName("id"))
-	c.JSON(resp.Status, resp)
+	if validSession(c) {
+		resp := fe.GetItem(c.Params.ByName("id"))
+		c.JSON(resp.Status, resp)
+	}
+	c.JSON(http.StatusUnauthorized, "Authentication Error")
 }
 func apiPost(c *gin.Context) {
 	resp := fe.PostItem(c.Request)
@@ -110,3 +115,18 @@ func apiDelete(c *gin.Context) {
 }
 
 //SESSION
+func setSessionCookie(c *gin.Context, u *back.User) {
+	session := se.New()
+	if err := session.CreateSession(u); err != nil {
+		c.Redirect(http.StatusInternalServerError, "/login")
+	}
+	http.SetCookie(c.Writer, session.Scookie)
+}
+
+func validSession(c *gin.Context) bool {
+	cookie, err := c.Request.Cookie("sessionid")
+	if err != nil {
+		return false
+	}
+	return se.VerifyCookie(cookie.Value)
+}
