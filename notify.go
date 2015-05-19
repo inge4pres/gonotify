@@ -28,7 +28,7 @@ func main() {
 	r.POST("/login", postLogin)
 	r.GET("/logout", validSession, logOut)
 
-	r.GET("/user/:name", getUser)
+	r.GET("/user/:name", validSession, getUser)
 
 	r.GET("/", getIndex)
 
@@ -65,8 +65,11 @@ func getLogin(c *gin.Context) {
 func postLogin(c *gin.Context) {
 	u, err := back.GetUserByName(c.Request.FormValue("username"))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
-		c.HTMLString(http.StatusInternalServerError, err.Error())
+		w := fe.New()
+		w.Err = err
+		w.Status = http.StatusInternalServerError
+		//c.JSON(w.Status, err)
+		c.HTML(w.Status, "base.tmpl", &w)
 	}
 	if u.VerifyPwd(c.Request.FormValue("password")) {
 		setSessionCookie(c, u)
@@ -117,7 +120,9 @@ func apiDelete(c *gin.Context) {
 func setSessionCookie(c *gin.Context, u *back.User) {
 	session := se.New()
 	if err := session.CreateSession(u); err != nil {
-		c.Redirect(http.StatusInternalServerError, "/login")
+		w := fe.New()
+		w.Err = err
+		c.HTML(http.StatusInternalServerError, "base.tmpl", &w)
 	}
 	http.SetCookie(c.Writer, session.Scookie)
 }
