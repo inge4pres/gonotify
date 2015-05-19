@@ -41,7 +41,8 @@ func GetUserById(uid int64) (*User, error) {
 
 func (u *User) VerifyPwd(pwd string) bool {
 	if encPwd(pwd) == u.Pwd {
-		if err := u.updateLogin(true); err != nil {
+		err := u.updateLogin(true)
+		if err != nil {
 			logg.Println("LOGIN FAILED for USER " + u.Uname + " Cause: " + err.Error())
 			dblog.WriteLog(logbuf, "ERROR")
 			return false

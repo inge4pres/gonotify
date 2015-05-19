@@ -17,8 +17,8 @@ func main() {
 	r.Static("/img", "./static/img")
 	r.Static("/js", "./static/js")
 
-	r.GET("/api/:id", validSession, apiGet)
-	r.POST("/api/", validSession, apiPost)
+	r.GET("/api/:id", validCookie, apiGet)
+	r.POST("/api/", validCookie, apiPost)
 	r.PUT("/api/:id", apiPut)
 	r.DELETE("/api/:id", apiDelete)
 
@@ -26,16 +26,16 @@ func main() {
 	r.POST("/signup", postSignup)
 	r.GET("/login", getLogin)
 	r.POST("/login", postLogin)
-	r.GET("/logout", validSession, logOut)
+	r.GET("/logout", validCookie, logOut)
 
-	r.GET("/user/:name", validSession, getUser)
+	r.GET("/user/:name", validCookie, getUser)
 
 	r.GET("/", getIndex)
 
 	fmt.Println("Serving on localhost:4488")
 	http.ListenAndServe(":4488", r)
 }
-validCookiec *gin.Context) {
+func getIndex(c *gin.Context) {
 	w := fe.New()
 	c.HTML(http.StatusOK, "index.tmpl", &w)
 }
@@ -67,10 +67,10 @@ func postLogin(c *gin.Context) {
 		w := fe.New()
 		w.Err = err
 		w.Status = http.StatusInternalServerError
-		//c.JSON(w.Status, err)
 		c.HTML(w.Status, "base.tmpl", &w)
 	}
-	if u.VerifyPwd(c.Request.FormValue("password")) {
+	ver := u.VerifyPwd(c.Request.FormValue("password"))
+	if ver {
 		setSessionCookie(c, u)
 		c.Redirect(http.StatusMovedPermanently, "/user/"+u.Uname)
 	} else {
@@ -127,24 +127,30 @@ func setSessionCookie(c *gin.Context, u *back.User) {
 	c.Set("islogged", true)
 	http.SetCookie(c.Writer, session.Scookie)
 }
-func validSession(c *gin.Context) {
-	cookvalidCookie.Request.Cookie("sessionid")
+func validCookie(c *gin.Context) {
+	cookie, err := c.Request.Cookie("sessionid")
 	if err != nil || cookie == nil {
 		c.Writer.WriteHeader(http.StatusBadRequest)
 	} else {
 		if se.VerifyCookie(cookie) {
+			c.Set("islogged", true)
 			c.Writer.WriteHeader(http.StatusContinue)
 		}
 	}
 }
 func isLogged(c *gin.Context) bool {
-	
+	i, err := c.Get("islogged")
+	if err != nil {
+		return false
+	}
+	return i.(bool)
 }
 func logOut(c *gin.Context) {
 	cookie, _ := c.Request.Cookie("sessionid")
 	err := se.Logout(cookie)
 	if err != nil {
-		c.Redirect(http.StatusInternalServerError, "/")
+		c.Redirect(301, "/")
 	}
-	c.Redirect(http.StatusOK, "/")
+	delete(c.Keys, "islogged")
+	c.Redirect(301, "/")
 }

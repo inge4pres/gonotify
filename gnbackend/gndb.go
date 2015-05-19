@@ -104,7 +104,9 @@ func (i *DbParam) GetUserItems(user *User) ([]Item, error) {
 func (u *DbParam) UpdateFieldById(id int64, field string, value interface{}) error {
 	db, err := openConn(u)
 	defer db.Close()
-	_, err = db.Exec("UPDATE "+u.table+" SET "+field+" = ? WHERE id = ?", value, id)
+	res, err := db.Exec("UPDATE "+u.table+" SET "+field+" = ? WHERE id = ?", value, id)
+	txid, _ := res.LastInsertId()
+	logg.Printf("Updating %s for user with ID %d, setting on %b; TXID %d", field, id, value, txid)
 	return err
 }
 
