@@ -35,8 +35,7 @@ func main() {
 	fmt.Println("Serving on localhost:4488")
 	http.ListenAndServe(":4488", r)
 }
-
-func getIndex(c *gin.Context) {
+validCookiec *gin.Context) {
 	w := fe.New()
 	c.HTML(http.StatusOK, "index.tmpl", &w)
 }
@@ -122,12 +121,14 @@ func setSessionCookie(c *gin.Context, u *back.User) {
 	if err := session.CreateSession(u); err != nil {
 		w := fe.New()
 		w.Err = err
+		c.Set("islogged", false)
 		c.HTML(http.StatusInternalServerError, "base.tmpl", &w)
 	}
+	c.Set("islogged", true)
 	http.SetCookie(c.Writer, session.Scookie)
 }
 func validSession(c *gin.Context) {
-	cookie, err := c.Request.Cookie("sessionid")
+	cookvalidCookie.Request.Cookie("sessionid")
 	if err != nil || cookie == nil {
 		c.Writer.WriteHeader(http.StatusBadRequest)
 	} else {
@@ -135,6 +136,9 @@ func validSession(c *gin.Context) {
 			c.Writer.WriteHeader(http.StatusContinue)
 		}
 	}
+}
+func isLogged(c *gin.Context) bool {
+	
 }
 func logOut(c *gin.Context) {
 	cookie, _ := c.Request.Cookie("sessionid")
