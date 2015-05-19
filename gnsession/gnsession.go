@@ -1,7 +1,6 @@
 package gnsession
 
 import (
-	"crypto/hmac"
 	"crypto/sha512"
 	"encoding/base64"
 	b "gonotify/gnbackend"
@@ -23,11 +22,11 @@ func New() *Session {
 			Value:  "",
 			MaxAge: 3600,
 		},
-		Expire: time.Now().Local().Add(1 * time.Hour),
 	}
 }
 
 func (s *Session) CreateSession(u *b.User) (err error) {
+	s.Expire = time.Now().Local().Add(1 * time.Hour)
 	s.Scookie.Value = createCookieValue(s.Expire, u.Uname)
 	id, err := b.StartSession(u.Id, s.Scookie.Value, s.Expire)
 	if id > 0 {
@@ -38,8 +37,8 @@ func (s *Session) CreateSession(u *b.User) (err error) {
 
 func createCookieValue(dest time.Time, val string) string {
 	key := string(dest.UnixNano())
-	h := hmac.New(sha512.New, []byte(key))
-	h.Write([]byte(val))
+	h := sha512.New()
+	h.Write([]byte(val + key))
 	return base64.StdEncoding.EncodeToString(h.Sum(nil))
 }
 

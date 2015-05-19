@@ -71,7 +71,7 @@ func postLogin(c *gin.Context) {
 	}
 	ver := u.VerifyPwd(c.Request.FormValue("password"))
 	if ver {
-		setSessionCookie(c, u)
+		go setSessionCookie(c, u)
 		c.Redirect(http.StatusMovedPermanently, "/user/"+u.Uname)
 	} else {
 		c.Redirect(http.StatusMovedPermanently, "/login")
