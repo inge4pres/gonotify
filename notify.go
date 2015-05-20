@@ -71,7 +71,7 @@ func postLogin(c *gin.Context) {
 	}
 	ver := u.VerifyPwd(c.Request.FormValue("password"))
 	if ver {
-		go setSessionCookie(c, u)
+		setSessionCookie(c, u)
 		c.Redirect(http.StatusMovedPermanently, "/user/"+u.Uname)
 	} else {
 		c.Redirect(http.StatusMovedPermanently, "/login")
@@ -146,11 +146,21 @@ func isLogged(c *gin.Context) bool {
 	return i.(bool)
 }
 func logOut(c *gin.Context) {
-	cookie, _ := c.Request.Cookie("sessionid")
-	err := se.Logout(cookie)
+	cookie, err := c.Request.Cookie("sessionid")
 	if err != nil {
-		c.Redirect(301, "/")
+		w := fe.New()
+		w.Err = err
+		c.HTML(500, "base.tmpl", &w)
+	} else {
+		err := se.Logout(cookie)
+		if err != nil {
+			w := fe.New()
+			w.Err = err
+			c.HTML(500, "base.tmpl", &w)
+		} else {
+			delete(c.Keys, "islogged")
+			c.Redirect(301, "/")
+		}
+
 	}
-	delete(c.Keys, "islogged")
-	c.Redirect(301, "/")
 }
