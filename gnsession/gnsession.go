@@ -4,6 +4,7 @@ import (
 	"crypto/sha512"
 	"encoding/base64"
 	b "gonotify/gnbackend"
+	"math/rand"
 	"net/http"
 	"time"
 )
@@ -36,14 +37,15 @@ func (s *Session) CreateSession(u *b.User) (err error) {
 }
 
 func createCookieValue(dest time.Time, val string) string {
-	key := string(dest.UnixNano())
+	rand.Seed(time.Now().UnixNano())
+	key := string(rand.Int63n(dest.UnixNano()))
 	h := sha512.New()
 	h.Write([]byte(val + key))
 	return base64.StdEncoding.EncodeToString(h.Sum(nil))
 }
 
 func VerifyCookie(c *http.Cookie) bool {
-	if err := b.FindSessionByCookie(c.Value); err != nil {
+	if _, err := b.FindSessionByCookie(c.Value); err != nil {
 		return false
 	}
 	return true
