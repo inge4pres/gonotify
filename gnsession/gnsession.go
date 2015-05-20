@@ -40,8 +40,8 @@ func createCookieValue(dest time.Time, val string) string {
 	rand.Seed(time.Now().UnixNano())
 	key := string(rand.Int63n(dest.UnixNano()))
 	h := sha512.New()
-	h.Write([]byte(val + key))
-	return base64.StdEncoding.EncodeToString(h.Sum(nil))
+	h.Write([]byte(key))
+	return base64.StdEncoding.EncodeToString(h.Sum([]byte(val)))
 }
 
 func VerifyCookie(c *http.Cookie) bool {
