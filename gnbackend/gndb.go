@@ -65,8 +65,7 @@ func (i *DbParam) InsertItem(item Item) (int64, error) {
 	if err != nil {
 		return -1, err
 	}
-	lid, err := res.LastInsertId()
-	return lid, err
+	return res.LastInsertId()
 }
 
 func (o *DbParam) DeleteById(id int64) error {
