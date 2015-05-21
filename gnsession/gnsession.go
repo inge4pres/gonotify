@@ -37,11 +37,11 @@ func (s *Session) CreateSession(u *b.User) (err error) {
 }
 
 func createCookieValue(dest time.Time, val string) string {
-	rand.Seed(time.Now().UnixNano())
+	rand.Seed(dest.UnixNano())
 	key := string(rand.Int63n(dest.UnixNano()))
 	h := sha512.New()
-	h.Write([]byte(key))
-	return base64.StdEncoding.EncodeToString(h.Sum([]byte(val)))
+	h.Write([]byte(key + val))
+	return base64.StdEncoding.EncodeToString(h.Sum([]byte(nil)))
 }
 
 func VerifyCookie(c *http.Cookie) bool {

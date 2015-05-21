@@ -47,8 +47,10 @@ func (u *User) VerifyPwd(pwd string) bool {
 			dblog.WriteLog(logbuf, "ERROR")
 			return false
 		}
+		return true
+	} else {
+		return false
 	}
-	return true
 }
 
 func (u *User) updateLogin(islogged bool) error {
