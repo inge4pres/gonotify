@@ -1,0 +1,9 @@
+{{template "head" . }}
+{{if .Err}}
+	{{template "error" .}}
+{{else}}
+	<div class="flex-auto">
+		<p><h4>Username<td/>{{.User.Uname}}</h4></p>
+	</div>
+{{end}}
+{{template "foot"}}
