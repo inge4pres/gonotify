@@ -17,8 +17,8 @@ func main() {
 	r.Static("/img", "./static/img")
 	r.Static("/js", "./static/js")
 
-	r.GET("/api/:id", validCookie, apiGet)
-	r.POST("/api/", validCookie, apiPost)
+	r.GET("/api/:id", apiGet)
+	r.POST("/api/", apiPost)
 	r.PUT("/api/:id", apiPut)
 	r.DELETE("/api/:id", apiDelete)
 
@@ -26,9 +26,9 @@ func main() {
 	r.POST("/signup", postSignup)
 	r.GET("/login", getLogin)
 	r.POST("/login", postLogin)
-	r.GET("/logout", validCookie, logOut)
+	r.GET("/logout", logOut)
 
-	r.GET("/user/:name", validCookie, getUser)
+	r.GET("/user/:name", getUser)
 
 	r.GET("/", getIndex)
 
