@@ -94,6 +94,8 @@ func StopSession(sessid string) (err error) {
 	uid, err := dbsess.selectSessionUid(sessid)
 	user, err := GetUserById(uid)
 	if err != nil {
+		logg.Fatalf("Could not delete session for user with ID %d, because %s", uid, err.Error())
+		dblog.WriteLog(logbuf, "ERROR")
 		return
 	}
 	user.updateLogin(false)

@@ -129,13 +129,14 @@ func setSessionCookie(c *gin.Context, u *back.User) {
 }
 func validCookie(c *gin.Context) {
 	cookie, err := c.Request.Cookie("sessionid")
+	w := fe.New()
 	if err != nil || cookie == nil {
-		c.Writer.WriteHeader(http.StatusBadRequest)
-	} else {
-		if se.VerifyCookie(cookie) {
-			c.Set("islogged", true)
-			c.Writer.WriteHeader(http.StatusContinue)
-		}
+		w.Status = http.StatusUnauthorized
+		c.HTML(w.Status, "index.tmpl", &w)
+	}
+	if se.VerifyCookie(cookie) {
+		c.Set("islogged", true)
+		c.HTML(w.Status, "base.tmpl", &w)
 	}
 }
 func isLogged(c *gin.Context) bool {
