@@ -36,7 +36,6 @@ func (l *DbParam) WriteLog(mex bytes.Buffer, level string) error {
 	}
 	return nil
 }
-
 func (u *DbParam) InsertUser(us *User) (*User, error) {
 	db, err := openConn(u)
 	defer db.Close()
@@ -48,7 +47,6 @@ func (u *DbParam) InsertUser(us *User) (*User, error) {
 	us.Id = id
 	return us, err
 }
-
 func (i *DbParam) GetItem(id int64) (Item, error) {
 	db, err := openConn(i)
 	defer db.Close()
@@ -56,7 +54,6 @@ func (i *DbParam) GetItem(id int64) (Item, error) {
 	err = db.QueryRow("SELECT * from "+i.table+" WHERE id = ?", id).Scan(&item.Id, &item.Time, &item.Notify.Level, &item.Notify.Rcpnt, &item.Notify.Sndr, &item.Notify.Subject, &item.Notify.Message, &item.Archived)
 	return item, err
 }
-
 func (i *DbParam) InsertItem(item Item) (int64, error) {
 	db, err := openConn(i)
 	defer db.Close()
@@ -67,14 +64,12 @@ func (i *DbParam) InsertItem(item Item) (int64, error) {
 	}
 	return res.LastInsertId()
 }
-
 func (o *DbParam) DeleteById(id int64) error {
 	db, err := openConn(o)
 	defer db.Close()
 	_, err = db.Exec("DELETE FROM "+o.table+" WHERE id = ?", id)
 	return err
 }
-
 func (u *DbParam) GetUserByField(field string, value interface{}) (*User, error) {
 	db, _ := openConn(u)
 	defer db.Close()
@@ -82,7 +77,6 @@ func (u *DbParam) GetUserByField(field string, value interface{}) (*User, error)
 	err := db.QueryRow("SELECT * from "+u.table+" WHERE "+field+" = ?", value).Scan(&user.Id, &user.Modified, &user.Uname, &user.Rname, &user.Mail, &user.Pwd, &user.IsLogged)
 	return user, err
 }
-
 func (i *DbParam) GetUserItems(user *User) ([]Item, error) {
 	db, err := openConn(i)
 	defer db.Close()
@@ -99,7 +93,6 @@ func (i *DbParam) GetUserItems(user *User) ([]Item, error) {
 	}
 	return items, err
 }
-
 func (u *DbParam) UpdateFieldById(id int64, field string, value interface{}) error {
 	db, err := openConn(u)
 	defer db.Close()
@@ -108,7 +101,6 @@ func (u *DbParam) UpdateFieldById(id int64, field string, value interface{}) err
 	logg.Printf("Updating %s for user with ID %d, setting on %b; TXID %d", field, id, value, txid)
 	return err
 }
-
 func (s *DbParam) insertSession(uid int64, scookie string, expires time.Time) (int64, error) {
 	db, err := openConn(s)
 	defer db.Close()
@@ -118,7 +110,6 @@ func (s *DbParam) insertSession(uid int64, scookie string, expires time.Time) (i
 	}
 	return res.LastInsertId()
 }
-
 func (s *DbParam) selectSessionId(value string) (int64, error) {
 	db, _ := openConn(s)
 	defer db.Close()
@@ -126,7 +117,6 @@ func (s *DbParam) selectSessionId(value string) (int64, error) {
 	err := db.QueryRow("SELECT id FROM gn_session where scookie = ?", value).Scan(&id)
 	return id, err
 }
-
 func (s *DbParam) selectSessionUid(value string) (int64, error) {
 	db, _ := openConn(s)
 	defer db.Close()

@@ -23,11 +23,11 @@ func New() *Session {
 			Value:  "",
 			MaxAge: 3600,
 		},
+		Expire: time.Now().Local().Add(1 * time.Hour),
 	}
 }
 
 func (s *Session) CreateSession(u *b.User) (err error) {
-	s.Expire = time.Now().Local().Add(1 * time.Hour)
 	s.Scookie.Value = createCookieValue(s.Expire, u.Uname)
 	id, err := b.StartSession(u.Id, s.Scookie.Value, s.Expire)
 	if id > 0 {
@@ -35,23 +35,19 @@ func (s *Session) CreateSession(u *b.User) (err error) {
 	}
 	return
 }
-
 func createCookieValue(dest time.Time, val string) string {
-	rand.Seed(dest.UnixNano())
+	rand.Seed(time.Now().Local().UnixNano())
 	key := string(rand.Int63n(dest.UnixNano()))
 	h := sha512.New()
-	h.Write([]byte(key + val))
-	return base64.StdEncoding.EncodeToString(h.Sum([]byte(nil)))
+	h.Write([]byte(key))
+	return base64.StdEncoding.EncodeToString(h.Sum([]byte(val)))
 }
-
 func VerifyCookie(c *http.Cookie) bool {
 	if _, err := b.FindSessionByCookie(c.Value); err != nil {
 		return false
 	}
 	return true
 }
-
 func Logout(c *http.Cookie) error {
-	c.MaxAge = 0
 	return b.StopSession(c.Value)
 }

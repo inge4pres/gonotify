@@ -34,7 +34,13 @@ func RegisterUser(uname, rname, mail, pwd string) (*User, error) {
 func GetUserByName(uname string) (*User, error) {
 	return dbuser.GetUserByField("uname", uname)
 }
-
+func GetUserByCookieValue(sessid string) (*User, error) {
+	uid, err := dbsess.selectSessionId(sessid)
+	if err != nil {
+		return NewUser(), err
+	}
+	return dbuser.GetUserByField("id", uid)
+}
 func GetUserById(uid int64) (*User, error) {
 	return dbuser.GetUserByField("id", uid)
 }
@@ -52,11 +58,9 @@ func (u *User) VerifyPwd(pwd string) bool {
 		return false
 	}
 }
-
 func (u *User) updateLogin(islogged bool) error {
 	return dbuser.UpdateFieldById(u.Id, "islogged", islogged)
 }
-
 func encPwd(input string) string {
 	h := sha512.New()
 	h.Write([]byte(input))
