@@ -37,6 +37,17 @@ func main() {
 }
 func getIndex(c *gin.Context) {
 	w := fe.New()
+	cookie, err := c.Request.Cookie("sessionid")
+	if err != nil {
+		w.Err = err
+		c.Set("islogged", false)
+		w.User, err = back.GetUserByCookieValue(cookie.Value)
+		if err != nil {
+			w.Status = http.StatusUnauthorized
+			c.Set("islogged", false)
+		}
+	}
+	c.Set("islogged", true)
 	c.HTML(http.StatusOK, "index.tmpl", &w)
 }
 func getUser(c *gin.Context) {
@@ -154,6 +165,7 @@ func logOut(c *gin.Context) {
 		c.HTML(500, "base.tmpl", &w)
 	} else {
 		err := se.Logout(cookie)
+		cookie.MaxAge = 0
 		if err != nil {
 			w := fe.New()
 			w.Err = err
