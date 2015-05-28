@@ -1,4 +1,4 @@
-package gnsession
+package gnfrontend
 
 import (
 	"crypto/sha512"
@@ -15,7 +15,7 @@ type Session struct {
 	Expire  time.Time
 }
 
-func New() *Session {
+func NewSession() *Session {
 	return &Session{
 		Uid: -1,
 		Scookie: &http.Cookie{
@@ -29,7 +29,11 @@ func New() *Session {
 
 func (s *Session) CreateSession(u *b.User) (err error) {
 	s.Scookie.Value = createCookieValue(s.Expire, u.Uname)
-	id, err := b.StartSession(u.Id, s.Scookie.Value, s.Expire)
+	id, err := b.DbSess.InsertSession(u.Id, s.Scookie.Value, s.Expire)
+	if err != nil {
+		b.Logg.Printf("Session creation failed for user with ID %d", s.Scookie.Value, u.Id)
+		b.DbLog.WriteLog(b.Logbuf, "ERROR")
+	}
 	if id > 0 {
 		s.Id = id
 	}
@@ -39,11 +43,13 @@ func createCookieValue(dest time.Time, val string) string {
 	rand.Seed(time.Now().Local().UnixNano())
 	key := string(rand.Int63n(dest.UnixNano()))
 	h := sha512.New()
+	h.Write([]byte(val))
 	h.Write([]byte(key))
-	return base64.StdEncoding.EncodeToString(h.Sum([]byte(val)))
+	return base64.StdEncoding.EncodeToString(h.Sum([]byte(nil)))
 }
 func VerifyCookie(c *http.Cookie) bool {
-	if _, err := b.FindSessionByCookie(c.Value); err != nil {
+	uid, err := b.DbSess.SelectUserIdFromSessionCookie(c.Value)
+	if err != nil || uid < 1 {
 		return false
 	}
 	return true
