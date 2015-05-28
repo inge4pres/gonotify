@@ -2,7 +2,7 @@ package gnfrontend
 
 import back "gonotify/gnbackend"
 
-type Base struct {
+type WebBase struct {
 	Title, TitleExt string
 	Status          int
 	Err             error
@@ -10,8 +10,8 @@ type Base struct {
 	Items           []back.Item
 }
 
-func New() *Base {
-	return &Base{
+func NewWebBase() *WebBase {
+	return &WebBase{
 		Title:  "GoNotify",
 		Status: 200,
 		User:   back.NewUser(),
