@@ -6,7 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 	back "gonotify/gnbackend"
 	fe "gonotify/gnfrontend"
-	se "gonotify/gnsession"
 	"net/http"
 )
 
@@ -36,7 +35,7 @@ func main() {
 	http.ListenAndServe(":4488", r)
 }
 func getIndex(c *gin.Context) {
-	w := fe.New()
+	w := fe.NewWebBase()
 	cookie, err := c.Request.Cookie("sessionid")
 	if err != nil {
 		w.Err = err
@@ -51,7 +50,7 @@ func getIndex(c *gin.Context) {
 	c.HTML(http.StatusOK, "index.tmpl", &w)
 }
 func getUser(c *gin.Context) {
-	w := fe.New()
+	w := fe.NewWebBase()
 	user, err := back.GetUserByName(c.Params.ByName("name"))
 	if err != nil {
 		w.Err = err
@@ -68,14 +67,14 @@ func getUser(c *gin.Context) {
 	c.HTML(w.Status, "base.tmpl", &w)
 }
 func getLogin(c *gin.Context) {
-	w := fe.New()
+	w := fe.NewWebBase()
 	//	c.JSON(http.StatusOK, "LOGGED IN")
 	c.HTML(http.StatusOK, "login.tmpl", &w)
 }
 func postLogin(c *gin.Context) {
 	u, err := back.GetUserByName(c.Request.FormValue("username"))
 	if err != nil {
-		w := fe.New()
+		w := fe.NewWebBase()
 		w.Err = err
 		w.Status = http.StatusInternalServerError
 		c.HTML(w.Status, "base.tmpl", &w)
@@ -89,11 +88,11 @@ func postLogin(c *gin.Context) {
 	}
 }
 func getSignup(c *gin.Context) {
-	w := fe.New()
+	w := fe.NewWebBase()
 	c.HTML(http.StatusOK, "signup.tmpl", &w)
 }
 func postSignup(c *gin.Context) {
-	w := fe.New()
+	w := fe.NewWebBase()
 	uname := c.Request.FormValue("username")
 	rname := c.Request.FormValue("realname")
 	mail := c.Request.FormValue("email")
@@ -128,9 +127,9 @@ func apiDelete(c *gin.Context) {
 
 //SESSION
 func setSessionCookie(c *gin.Context, u *back.User) {
-	session := se.New()
+	session := fe.NewSession()
 	if err := session.CreateSession(u); err != nil {
-		w := fe.New()
+		w := fe.NewWebBase()
 		w.Err = err
 		c.Set("islogged", false)
 		c.HTML(http.StatusInternalServerError, "base.tmpl", &w)
@@ -140,12 +139,12 @@ func setSessionCookie(c *gin.Context, u *back.User) {
 }
 func validCookie(c *gin.Context) {
 	cookie, err := c.Request.Cookie("sessionid")
-	w := fe.New()
+	w := fe.NewWebBase()
 	if err != nil || cookie == nil {
 		w.Status = http.StatusUnauthorized
 		c.HTML(w.Status, "index.tmpl", &w)
 	}
-	if se.VerifyCookie(cookie) {
+	if fe.VerifyCookie(cookie) {
 		c.Set("islogged", true)
 		c.HTML(w.Status, "base.tmpl", &w)
 	}
@@ -160,14 +159,14 @@ func isLogged(c *gin.Context) bool {
 func logOut(c *gin.Context) {
 	cookie, err := c.Request.Cookie("sessionid")
 	if err != nil {
-		w := fe.New()
+		w := fe.NewWebBase()
 		w.Err = err
 		c.HTML(500, "base.tmpl", &w)
 	} else {
-		err := se.Logout(cookie)
+		err := fe.Logout(cookie)
 		cookie.MaxAge = 0
 		if err != nil {
-			w := fe.New()
+			w := fe.NewWebBase()
 			w.Err = err
 			c.HTML(500, "base.tmpl", &w)
 		} else {
