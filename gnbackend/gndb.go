@@ -8,15 +8,19 @@ import (
 )
 
 var db *sql.DB
+var DbLog *DbParam
+var DbItem *DbParam
+var DbUser *DbParam
+var DbSess *DbParam
 
 type DbParam struct {
 	user, pass, url, name, table string
 	params                       []string
 }
 
-func NewDbConn(dbuser, dbpass, dbaddr, dbname, dbtable string, params []string) *DbParam {
+func newConn(DbUser, dbpass, dbaddr, dbname, dbtable string, params []string) *DbParam {
 	return &DbParam{
-		user:   dbuser,
+		user:   DbUser,
 		pass:   dbpass,
 		url:    dbaddr,
 		name:   dbname,
@@ -98,10 +102,10 @@ func (u *DbParam) UpdateFieldById(id int64, field string, value interface{}) err
 	defer db.Close()
 	res, err := db.Exec("UPDATE "+u.table+" SET "+field+" = ? WHERE id = ?", value, id)
 	txid, _ := res.LastInsertId()
-	logg.Printf("Updating %s for user with ID %d, setting on %b; TXID %d", field, id, value, txid)
+	Logg.Printf("Updating %s for user with ID %d, setting on %b; TXID %d", field, id, value, txid)
 	return err
 }
-func (s *DbParam) insertSession(uid int64, scookie string, expires time.Time) (int64, error) {
+func (s *DbParam) InsertSession(uid int64, scookie string, expires time.Time) (int64, error) {
 	db, err := openConn(s)
 	defer db.Close()
 	res, err := db.Exec("INSERT INTO "+s.table+" VALUES( null, null, ?, ?, ?)", expires, uid, scookie)
@@ -110,18 +114,11 @@ func (s *DbParam) insertSession(uid int64, scookie string, expires time.Time) (i
 	}
 	return res.LastInsertId()
 }
-func (s *DbParam) selectSessionId(value string) (int64, error) {
+func (s *DbParam) SelectUserIdFromSessionCookie(value string) (int64, error) {
 	db, _ := openConn(s)
 	defer db.Close()
 	var id int64
 	err := db.QueryRow("SELECT id FROM gn_session where scookie = ?", value).Scan(&id)
-	return id, err
-}
-func (s *DbParam) selectSessionUid(value string) (int64, error) {
-	db, _ := openConn(s)
-	defer db.Close()
-	var id int64
-	err := db.QueryRow("SELECT uid FROM gn_session where scookie = ?", value).Scan(&id)
 	return id, err
 }
 

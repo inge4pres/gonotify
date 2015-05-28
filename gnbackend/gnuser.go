@@ -28,38 +28,34 @@ func RegisterUser(uname, rname, mail, pwd string) (*User, error) {
 	user.Rname = rname
 	user.Mail = mail
 	user.Pwd = encPwd(pwd)
-	return dbuser.InsertUser(user)
+	return DbUser.InsertUser(user)
 }
 
 func GetUserByName(uname string) (*User, error) {
-	return dbuser.GetUserByField("uname", uname)
+	return DbUser.GetUserByField("uname", uname)
 }
 func GetUserByCookieValue(sessid string) (*User, error) {
-	uid, err := dbsess.selectSessionId(sessid)
+	uid, err := DbSess.SelectUserIdFromSessionCookie(sessid)
 	if err != nil {
 		return NewUser(), err
 	}
-	return dbuser.GetUserByField("id", uid)
+	return DbUser.GetUserByField("id", uid)
 }
 func GetUserById(uid int64) (*User, error) {
-	return dbuser.GetUserByField("id", uid)
+	return DbUser.GetUserByField("id", uid)
 }
 
 func (u *User) VerifyPwd(pwd string) bool {
 	if encPwd(pwd) == u.Pwd {
-		err := u.updateLogin(true)
-		if err != nil {
-			logg.Println("LOGIN FAILED for USER " + u.Uname + " Cause: " + err.Error())
-			dblog.WriteLog(logbuf, "ERROR")
-			return false
-		}
 		return true
-	} else {
-		return false
 	}
+	Logg.Printf("LOGIN FAILED for USER %s with PASSWORD %s", u.Uname, pwd)
+	DbLog.WriteLog(Logbuf, "ERROR")
+	return false
 }
-func (u *User) updateLogin(islogged bool) error {
-	return dbuser.UpdateFieldById(u.Id, "islogged", islogged)
+
+func (u *User) UpdateLogin(islogged bool) error {
+	return DbUser.UpdateFieldById(u.Id, "islogged", islogged)
 }
 func encPwd(input string) string {
 	h := sha512.New()

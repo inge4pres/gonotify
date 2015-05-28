@@ -6,12 +6,8 @@ import (
 	"time"
 )
 
-var dblog *DbParam
-var dbitem *DbParam
-var dbuser *DbParam
-var dbsess *DbParam
-var logg *log.Logger
-var logbuf bytes.Buffer
+var Logg *log.Logger
+var Logbuf bytes.Buffer
 
 type Note struct {
 	Level   string `json:"level"`
@@ -29,11 +25,11 @@ type Item struct {
 }
 
 func init() {
-	logg = log.New(&logbuf, "", log.Lshortfile)
-	dblog = NewDbConn("gonotify", "n0tifyM3", "(sviluppo.mtl.it:3306)", "gonotify", "gn_log", []string{"parseTime=true"})
-	dbitem = NewDbConn("gonotify", "n0tifyM3", "(sviluppo.mtl.it:3306)", "gonotify", "gn_item", []string{"parseTime=true"})
-	dbuser = NewDbConn("gonotify", "n0tifyM3", "(sviluppo.mtl.it:3306)", "gonotify", "gn_user", []string{"parseTime=true"})
-	dbsess = NewDbConn("gonotify", "n0tifyM3", "(sviluppo.mtl.it:3306)", "gonotify", "gn_session", []string{"parseTime=true"})
+	Logg = log.New(&Logbuf, "", log.Lshortfile)
+	DbLog = newConn("gonotify", "n0tifyM3", "(sviluppo.mtl.it:3306)", "gonotify", "gn_log", []string{"parseTime=true"})
+	DbItem = newConn("gonotify", "n0tifyM3", "(sviluppo.mtl.it:3306)", "gonotify", "gn_item", []string{"parseTime=true"})
+	DbUser = newConn("gonotify", "n0tifyM3", "(sviluppo.mtl.it:3306)", "gonotify", "gn_user", []string{"parseTime=true"})
+	DbSess = newConn("gonotify", "n0tifyM3", "(sviluppo.mtl.it:3306)", "gonotify", "gn_session", []string{"parseTime=true"})
 }
 
 func NewItem() Item {
@@ -45,62 +41,51 @@ func NewItem() Item {
 }
 
 func GetUserItems(user *User) ([]Item, error) {
-	return dbitem.GetUserItems(user)
+	return DbItem.GetUserItems(user)
 }
 func GetItem(id int64) (item Item, err error) {
-	item, err = dbitem.GetItem(id)
+	item, err = DbItem.GetItem(id)
 	if err != nil {
 		log.Printf("GET ITEM with id %d FAILED! Cause : %s", id, err.Error())
-		dblog.WriteLog(logbuf, "ERROR")
+		DbLog.WriteLog(Logbuf, "ERROR")
 		return NewItem(), err
 	}
 	return item, err
 }
 func PostItem(item Item) (int64, error) {
-	id, err := dbitem.InsertItem(item)
+	id, err := DbItem.InsertItem(item)
 	if err != nil {
 		log.Printf("Not adding new item from %s to %s because of %s", item.Notify.Sndr, item.Notify.Rcpnt, err.Error())
-		_ = dblog.WriteLog(logbuf, "ERROR")
+		_ = DbLog.WriteLog(Logbuf, "ERROR")
 	}
 	return id, err
 }
 func DeleteItem(id int64) error {
-	err := dbitem.DeleteById(id)
+	err := DbItem.DeleteById(id)
 	if err != nil {
 		log.Printf("NOT Deleting ITEM with id %d FAILED! Cause : %s", id, err.Error())
-		_ = dblog.WriteLog(logbuf, "ERROR")
+		_ = DbLog.WriteLog(Logbuf, "ERROR")
 		return err
 	}
 	log.Printf("Deleting ITEM with ID %d", id)
-	_ = dblog.WriteLog(logbuf, "INFO")
+	_ = DbLog.WriteLog(Logbuf, "INFO")
 	return err
 }
 func ArchiveItem(id int64) (err error) {
-	if err = dbitem.UpdateFieldById(id, "archived", true); err != nil {
-		logg.Printf("ARCHIVE for ITEM with id %d FAILED! Cause : %s", id, err.Error())
-		dblog.WriteLog(logbuf, "ERROR")
-	}
-	return
-}
-func StartSession(uid int64, scookie string, expires time.Time) (id int64, err error) {
-	if id, err = dbsess.insertSession(uid, scookie, expires); err != nil {
-		logg.Printf("Session creation failed for user with ID %d", scookie, uid)
-		dblog.WriteLog(logbuf, "ERROR")
+	if err = DbItem.UpdateFieldById(id, "archived", true); err != nil {
+		Logg.Printf("ARCHIVE for ITEM with id %d FAILED! Cause : %s", id, err.Error())
+		DbLog.WriteLog(Logbuf, "ERROR")
 	}
 	return
 }
 func StopSession(sessid string) (err error) {
-	id, err := dbsess.selectSessionId(sessid)
-	uid, err := dbsess.selectSessionUid(sessid)
-	user, err := GetUserById(uid)
+	id, err := DbSess.SelectUserIdFromSessionCookie(sessid)
+	user, err := GetUserById(id)
 	if err != nil {
-		logg.Fatalf("Could not delete session for user with ID %d, because %s", uid, err.Error())
-		dblog.WriteLog(logbuf, "ERROR")
+		Logg.Fatalf("Could not delete session for user with ID %d, because %s", id, err.Error())
+		DbLog.WriteLog(Logbuf, "ERROR")
 		return
 	}
-	user.updateLogin(false)
-	return dbsess.DeleteById(id)
-}
-func FindSessionByCookie(value string) (int64, error) {
-	return dbsess.selectSessionId(value)
+	user.UpdateLogin(false)
+	return DbSess.DeleteById(id)
 }
