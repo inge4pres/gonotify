@@ -54,6 +54,17 @@ func VerifyCookie(c *http.Cookie) bool {
 	}
 	return true
 }
-func Logout(c *http.Cookie) error {
-	return b.StopSession(c.Value)
+func Logout(c *http.Cookie) (err error) {
+	id, err := b.DbSess.SelectUserIdFromSessionCookie(c.Value)
+	if err != nil {
+		return
+	}
+	user, err := b.GetUserById(id)
+	if err != nil {
+		b.Logg.Printf("Could not delete session for user with ID %d, because %s", id, err.Error())
+		b.DbLog.WriteLog(b.Logbuf, "ERROR")
+		return
+	}
+	user.UpdateLogin(false)
+	return b.DbSess.DeleteById(id)
 }
