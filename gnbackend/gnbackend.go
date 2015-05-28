@@ -78,14 +78,3 @@ func ArchiveItem(id int64) (err error) {
 	}
 	return
 }
-func StopSession(sessid string) (err error) {
-	id, err := DbSess.SelectUserIdFromSessionCookie(sessid)
-	user, err := GetUserById(id)
-	if err != nil {
-		Logg.Fatalf("Could not delete session for user with ID %d, because %s", id, err.Error())
-		DbLog.WriteLog(Logbuf, "ERROR")
-		return
-	}
-	user.UpdateLogin(false)
-	return DbSess.DeleteById(id)
-}

@@ -78,7 +78,7 @@ func (u *DbParam) GetUserByField(field string, value interface{}) (*User, error)
 	db, _ := openConn(u)
 	defer db.Close()
 	user := NewUser()
-	err := db.QueryRow("SELECT * from "+u.table+" WHERE "+field+" = ?", value).Scan(&user.Id, &user.Modified, &user.Uname, &user.Rname, &user.Mail, &user.Pwd, &user.IsLogged)
+	err := db.QueryRow("SELECT * from "+u.table+" WHERE "+field+" = ?", value).Scan(&user.Id, &user.Modified, &user.Uname, &user.Rname, &user.Mail, &user.Pwd)
 	return user, err
 }
 func (i *DbParam) GetUserItems(user *User) ([]Item, error) {
@@ -102,7 +102,7 @@ func (u *DbParam) UpdateFieldById(id int64, field string, value interface{}) err
 	defer db.Close()
 	res, err := db.Exec("UPDATE "+u.table+" SET "+field+" = ? WHERE id = ?", value, id)
 	txid, _ := res.LastInsertId()
-	Logg.Printf("Updating %s for user with ID %d, setting on %b; TXID %d", field, id, value, txid)
+	Logg.Printf("Updating %s for user with ID %d, setting on %s; TXID %d", field, id, value, txid)
 	return err
 }
 func (s *DbParam) InsertSession(uid int64, scookie string, expires time.Time) (int64, error) {

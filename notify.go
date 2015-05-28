@@ -4,7 +4,7 @@ package main
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	back "gonotify/gnbackend"
+	ba "gonotify/gnbackend"
 	fe "gonotify/gnfrontend"
 	"net/http"
 )
@@ -29,33 +29,23 @@ func main() {
 
 	r.GET("/user/:name", getUser)
 
-	r.GET("/", getIndex)
+	r.GET("/", getIndex, validCookie)
 
 	fmt.Println("Serving on localhost:4488")
 	http.ListenAndServe(":4488", r)
 }
 func getIndex(c *gin.Context) {
 	w := fe.NewWebBase()
-	cookie, err := c.Request.Cookie("sessionid")
-	if err != nil {
-		w.Err = err
-		c.Set("islogged", false)
-		w.User, err = back.GetUserByCookieValue(cookie.Value)
-		if err != nil {
-			w.Status = http.StatusUnauthorized
-			c.Set("islogged", false)
-		}
-	}
-	c.Set("islogged", true)
-	c.HTML(http.StatusOK, "index.tmpl", &w)
+	w.Status = http.StatusOK
+	c.HTML(w.Status, "index.tmpl", &w)
 }
 func getUser(c *gin.Context) {
 	w := fe.NewWebBase()
-	user, err := back.GetUserByName(c.Params.ByName("name"))
+	user, err := ba.GetUserByName(c.Params.ByName("name"))
 	if err != nil {
 		w.Err = err
 	}
-	items, err := back.GetUserItems(user)
+	items, err := ba.GetUserItems(user)
 	if err != nil {
 		w.Status = http.StatusInternalServerError
 		w.Err = err
@@ -72,7 +62,7 @@ func getLogin(c *gin.Context) {
 	c.HTML(http.StatusOK, "login.tmpl", &w)
 }
 func postLogin(c *gin.Context) {
-	u, err := back.GetUserByName(c.Request.FormValue("username"))
+	u, err := ba.GetUserByName(c.Request.FormValue("username"))
 	if err != nil {
 		w := fe.NewWebBase()
 		w.Err = err
@@ -97,7 +87,7 @@ func postSignup(c *gin.Context) {
 	rname := c.Request.FormValue("realname")
 	mail := c.Request.FormValue("email")
 	pwd := c.Request.FormValue("password")
-	user, err := back.RegisterUser(uname, rname, mail, pwd)
+	user, err := ba.RegisterUser(uname, rname, mail, pwd)
 	if err != nil {
 		w.Err = err
 		w.Status = http.StatusInternalServerError
@@ -126,7 +116,7 @@ func apiDelete(c *gin.Context) {
 }
 
 //SESSION
-func setSessionCookie(c *gin.Context, u *back.User) {
+func setSessionCookie(c *gin.Context, u *ba.User) {
 	session := fe.NewSession()
 	if err := session.CreateSession(u); err != nil {
 		w := fe.NewWebBase()
@@ -140,12 +130,14 @@ func setSessionCookie(c *gin.Context, u *back.User) {
 func validCookie(c *gin.Context) {
 	cookie, err := c.Request.Cookie("sessionid")
 	w := fe.NewWebBase()
-	if err != nil || cookie == nil {
+	if err != nil {
 		w.Status = http.StatusUnauthorized
 		c.HTML(w.Status, "index.tmpl", &w)
 	}
 	if fe.VerifyCookie(cookie) {
 		c.Set("islogged", true)
+		w.User, err = ba.GetUserByCookieValue(cookie.Value)
+		w.Err = err
 		c.HTML(w.Status, "base.tmpl", &w)
 	}
 }
