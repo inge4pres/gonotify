@@ -7,7 +7,6 @@ create table gn_user (
 	rname VARCHAR(100) NOT NULL,
 	mail VARCHAR(100) NOT NULL UNIQUE KEY,
 	pwd VARCHAR(256) NOT NULL,
-	islogged BOOL DEFAULT FALSE,
 	UNIQUE INDEX mail_idx USING HASH (id,mail),
 	UNIQUE INDEX uname_idx USING BTREE (id,uname),
 	CONSTRAINT uni_uname UNIQUE (uname),

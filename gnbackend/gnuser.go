@@ -11,14 +11,12 @@ type User struct {
 	Modified           time.Time
 	Uname, Rname, Mail string
 	Pwd                string
-	IsLogged           bool
 }
 
 func NewUser() *User {
 	return &User{
 		Id:       -1,
 		Modified: time.Now().Local(),
-		IsLogged: false,
 	}
 }
 
