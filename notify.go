@@ -29,7 +29,7 @@ func main() {
 
 	r.GET("/user/:name", getUser)
 
-	r.GET("/", getIndex, validCookie)
+	r.GET("/", getIndex)
 
 	fmt.Println("Serving on localhost:4488")
 	http.ListenAndServe(":4488", r)
@@ -37,6 +37,10 @@ func main() {
 func getIndex(c *gin.Context) {
 	w := fe.NewWebBase()
 	w.Status = http.StatusOK
+	if validCookie(c.Request) {
+		c.Set("islogged", true)
+
+	}
 	c.HTML(w.Status, "index.tmpl", &w)
 }
 func getUser(c *gin.Context) {
@@ -115,7 +119,7 @@ func apiDelete(c *gin.Context) {
 	c.JSON(resp.Status, resp)
 }
 
-//SESSION
+//SESSION HANDLING
 func setSessionCookie(c *gin.Context, u *ba.User) {
 	session := fe.NewSession()
 	if err := session.CreateSession(u); err != nil {
@@ -127,18 +131,12 @@ func setSessionCookie(c *gin.Context, u *ba.User) {
 	c.Set("islogged", true)
 	http.SetCookie(c.Writer, session.Scookie)
 }
-func validCookie(c *gin.Context) {
-	cookie, err := c.Request.Cookie("sessionid")
-	w := fe.NewWebBase()
-	if err != nil {
-		w.Status = http.StatusUnauthorized
-		c.HTML(w.Status, "index.tmpl", &w)
-	}
-	if fe.VerifyCookie(cookie) {
-		c.Set("islogged", true)
-		w.User, err = ba.GetUserByCookieValue(cookie.Value)
-		w.Err = err
-		c.HTML(w.Status, "base.tmpl", &w)
+func validCookie(req *http.Request) bool {
+	cookie, err := req.Cookie("sessionid")
+	if err == http.ErrNoCookie {
+		return false
+	} else {
+		return fe.VerifyCookie(cookie)
 	}
 }
 func isLogged(c *gin.Context) bool {
@@ -150,21 +148,9 @@ func isLogged(c *gin.Context) bool {
 }
 func logOut(c *gin.Context) {
 	cookie, err := c.Request.Cookie("sessionid")
-	if err != nil {
-		w := fe.NewWebBase()
-		w.Err = err
-		c.HTML(500, "base.tmpl", &w)
+	if err == http.ErrNoCookie {
 	} else {
-		err := fe.Logout(cookie)
-		cookie.MaxAge = 0
-		if err != nil {
-			w := fe.NewWebBase()
-			w.Err = err
-			c.HTML(500, "base.tmpl", &w)
-		} else {
-			delete(c.Keys, "islogged")
-			c.Redirect(301, "/")
-		}
-
+		fe.Logout(cookie)
 	}
+	c.Redirect(301, "/")
 }
