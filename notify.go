@@ -148,8 +148,7 @@ func isLogged(c *gin.Context) bool {
 }
 func logOut(c *gin.Context) {
 	cookie, err := c.Request.Cookie("sessionid")
-	if err == http.ErrNoCookie {
-	} else {
+	if err != http.ErrNoCookie {
 		fe.Logout(cookie)
 	}
 	c.Redirect(301, "/")
