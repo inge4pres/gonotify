@@ -7,11 +7,10 @@ import (
 	"time"
 )
 
-var db *sql.DB
-var DbLog *DbParam
-var DbItem *DbParam
-var DbUser *DbParam
-var DbSess *DbParam
+var (
+	db                            *sql.DB
+	DbLog, DbItem, DbUser, DbSess *DbParam
+)
 
 type DbParam struct {
 	user, pass, url, name, table string
@@ -78,7 +77,7 @@ func (u *DbParam) GetUserByField(field string, value interface{}) (*User, error)
 	db, _ := openConn(u)
 	defer db.Close()
 	user := NewUser()
-	err := db.QueryRow("SELECT * from "+u.table+" WHERE "+field+" = ?", value).Scan(&user.Id, &user.Modified, &user.Uname, &user.Rname, &user.Mail, &user.Pwd)
+	err := db.QueryRow("SELECT * from "+u.table+" WHERE "+field+" = ?", value).Scan(&user.Id, &user.Modified, &user.Uname, &user.Rname, &user.Mail, &user.Pwd, &user.IsLogged)
 	return user, err
 }
 func (i *DbParam) GetUserItems(user *User) ([]Item, error) {
