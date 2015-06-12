@@ -28,6 +28,7 @@ func main() {
 	r.GET("/logout", logOut)
 
 	r.GET("/user/:name", getUser)
+	r.GET("/user/:name/settings", getSettings)
 
 	r.GET("/", getIndex)
 
@@ -48,6 +49,7 @@ func getUser(c *gin.Context) {
 	user, err := ba.GetUserByName(c.Params.ByName("name"))
 	if err != nil {
 		w.Err = err
+		c.HTML(w.Status, "base.tmpl", &w)
 	}
 	items, err := ba.GetUserItems(user)
 	if err != nil {
@@ -56,6 +58,7 @@ func getUser(c *gin.Context) {
 	} else {
 		w.Items = items
 	}
+	c.Set("user", w.User)
 	w.Title += " - " + user.Uname
 	w.User = user
 	c.HTML(w.Status, "base.tmpl", &w)
@@ -79,6 +82,16 @@ func postLogin(c *gin.Context) {
 		c.Redirect(http.StatusMovedPermanently, "/user/"+u.Uname)
 	} else {
 		c.Redirect(http.StatusMovedPermanently, "/login")
+	}
+}
+func getSettings(c *gin.Context) {
+	if isLogged(c) {
+		u, _ := c.Get("user")
+		w := fe.NewWebBase()
+		w.User = u.(*ba.User)
+		c.HTML(w.Status, "settings.tmpl", &w)
+	} else {
+		c.Redirect(301, "/login")
 	}
 }
 func getSignup(c *gin.Context) {
