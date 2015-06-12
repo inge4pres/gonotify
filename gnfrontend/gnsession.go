@@ -66,6 +66,6 @@ func Logout(c *http.Cookie) (err error) {
 		return
 	}
 	user.UpdateLogin(false)
-	c.MaxAge = 0
+	c.MaxAge = -1
 	return b.DbSess.DeleteById(id)
 }
