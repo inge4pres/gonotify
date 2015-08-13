@@ -12,6 +12,13 @@ var (
 	DbLog, DbItem, DbUser, DbSess *DbParam
 )
 
+type DbOps interface {
+	Insert()
+	Delete()
+	Update()
+	Select()
+}
+
 type DbParam struct {
 	user, pass, url, name, table string
 	params                       []string
